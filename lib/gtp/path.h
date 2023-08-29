@@ -49,7 +49,7 @@ extern "C" {
     } while(0)
 
 #define OGS_SETUP_GTPU_SERVER \
-    do { \ 
+    do { \
         ogs_assert(ogs_gtp_self()->gtpu_sock || ogs_gtp_self()->gtpu_sock6); \
         \
         if (ogs_gtp_self()->gtpu_sock) \
