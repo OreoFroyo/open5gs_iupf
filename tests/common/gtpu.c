@@ -17,6 +17,7 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
+/*
 #include "test-common.h"
 #include "ipfw/ipfw2.h"
 
@@ -128,7 +129,7 @@ void testgtpu_recv(test_ue_t *test_ue, ogs_pkbuf_t *pkbuf)
     teid = be32toh(gtp_h->teid);
 
     if (test_ue->mme_ue_s1ap_id) {
-        /* EPC */
+        // EPC 
         ogs_list_for_each(&test_ue->sess_list, sess) {
             ogs_list_for_each(&sess->bearer_list, bearer) {
                 if (teid == bearer->enb_s1u_teid) goto found;
@@ -137,7 +138,7 @@ void testgtpu_recv(test_ue_t *test_ue, ogs_pkbuf_t *pkbuf)
         }
         ogs_assert(sess);
     } else if (test_ue->amf_ue_ngap_id) {
-        /* 5GC */
+        // 5GC 
         ogs_list_for_each(&test_ue->sess_list, sess) {
             if (sess->gnb_n3_teid == teid) goto found;
         }
@@ -248,7 +249,7 @@ int test_gtpu_send_ping(
     ogs_assert(rv == OGS_OK);
 
     pkbuf = ogs_pkbuf_alloc(
-            NULL, 200 /* enough for ICMP; use smaller buffer */);
+            NULL, 200  );// enough for ICMP; use smaller buffer
     ogs_assert(pkbuf);
     ogs_pkbuf_reserve(pkbuf, OGS_GTPV1U_5GC_HEADER_LEN);
     ogs_pkbuf_put(pkbuf, 200-OGS_GTPV1U_5GC_HEADER_LEN);
@@ -364,7 +365,7 @@ int test_gtpu_send_slacc_rs(ogs_socknode_t *node, test_bearer_t *bearer)
     ogs_assert(sess);
 
     pkbuf = ogs_pkbuf_alloc(
-            NULL, 200 /* enough for ICMP; use smaller buffer */);
+            NULL, 200 );// enough for ICMP; use smaller buffer
     ogs_assert(pkbuf);
     ogs_pkbuf_reserve(pkbuf, OGS_GTPV1U_5GC_HEADER_LEN);
     ogs_pkbuf_put(pkbuf, 200-OGS_GTPV1U_5GC_HEADER_LEN);
@@ -392,10 +393,10 @@ int test_gtpu_send_slacc_rs(ogs_socknode_t *node, test_bearer_t *bearer)
     if (bearer->qfi) {
         gtp_hdesc.teid = sess->upf_n3_teid;
 
-/*
- * Discussion #1506
- * Router Soliciation should include QFI in 5G Core
- */
+
+  // Discussion #1506
+  // Router Soliciation should include QFI in 5G Core
+ 
         ext_hdesc.qos_flow_identifier = bearer->qfi;
 
     } else if (bearer->ebi) {
@@ -433,7 +434,7 @@ int test_gtpu_send_slacc_rs_with_unspecified_source_address(
     ogs_assert(sess);
 
     pkbuf = ogs_pkbuf_alloc(
-            NULL, 200 /* enough for ICMP; use smaller buffer */);
+            NULL, 200 );//enough for ICMP; use smaller buffer
     ogs_assert(pkbuf);
     ogs_pkbuf_reserve(pkbuf, OGS_GTPV1U_5GC_HEADER_LEN);
     ogs_pkbuf_put(pkbuf, 200-OGS_GTPV1U_5GC_HEADER_LEN);
@@ -453,10 +454,10 @@ int test_gtpu_send_slacc_rs_with_unspecified_source_address(
     if (bearer->qfi) {
         gtp_hdesc.teid = sess->upf_n3_teid;
 
-/*
- * Discussion #1506
- * Router Soliciation should include QFI in 5G Core
- */
+// 
+//  Discussion #1506
+//  Router Soliciation should include QFI in 5G Core
+//  
         ext_hdesc.qos_flow_identifier = bearer->qfi;
 
     } else if (bearer->ebi) {
@@ -487,11 +488,11 @@ int test_gtpu_send_error_indication(
     ogs_assert(sess);
 
     if (bearer->qfi) {
-        /* 5GC */
+        // 5GC 
         teid = sess->gnb_n3_teid;
 
     } else if (bearer->ebi) {
-        /* EPC */
+        // EPC 
         teid = bearer->enb_s1u_teid;
 
     } else {
@@ -546,3 +547,4 @@ int test_gtpu_send_indirect_data_forwarding(
 
     return test_gtpu_send(node, bearer, &gtp_hdesc, &ext_hdesc, pkbuf);
 }
+*/

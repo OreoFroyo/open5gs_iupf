@@ -1903,7 +1903,7 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     ogs_list_init(&qos_flow->pf_list);
 
     /* PDR */
-    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
+    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp); //分配一个新的pdr对象
     ogs_assert(dl_pdr);
     qos_flow->dl_pdr = dl_pdr;
 
@@ -1911,7 +1911,7 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     dl_pdr->apn = ogs_strdup(sess->session.name);
     ogs_assert(dl_pdr->apn);
 
-    dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE;
+    dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE; 
 
     ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
     ogs_assert(ul_pdr);
@@ -1921,10 +1921,10 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     ul_pdr->apn = ogs_strdup(sess->session.name);
     ogs_assert(ul_pdr->apn);
 
-    ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS;
+    ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS; //设置PDR的源接口为接入网,表示针对上行流量
 
-    ul_pdr->outer_header_removal_len = 2;
-    if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4) {
+    ul_pdr->outer_header_removal_len = 2; //设置外部头部删除描述,长度为2字节
+    if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4) { //根据会话类型设置需要删除的外部头,如UDP/IPv4头
         ul_pdr->outer_header_removal.description =
             OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
     } else if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV6) {
@@ -1951,7 +1951,7 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
 
     dl_far->apply_action =
-        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP;
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP; //dl默认动作为缓存和不计费
     ogs_assert(sess->pfcp.bar);
 
     ul_far = ogs_pfcp_far_add(&sess->pfcp);
@@ -1965,7 +1965,7 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
 
-    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
 
     /* URR */
     urr = ogs_pfcp_urr_add(&sess->pfcp);

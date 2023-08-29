@@ -20,7 +20,7 @@
 #include "iupf-sm.h"
 #include "context.h"
 #include "event.h"
-#include "./upf/pfcp-path.h"
+#include "pfcp-path.h"
 #include "gtp-path.h"
 
 void upf_state_initial(ogs_fsm_t *s, upf_event_t *e)

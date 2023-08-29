@@ -47,7 +47,7 @@
 #include <ifaddrs.h>
 #endif
 
-#include "./upf/arp-nd.h"
+#include "arp-nd.h"
 #include "event.h"
 #include "gtp-path.h"
 #include "pfcp-path.h"
@@ -199,10 +199,10 @@ static void _gtpv1_tun_recv_common_cb(
         break;
     }
 
-    if (!pdr)
+    if (!pdr) //没匹配到则使用备选pdr
         pdr = fallback_pdr;
 
-    if (!pdr) {
+    if (!pdr) { //仍然没有匹配 则对多播报文进行特殊处理
         if (ogs_app()->parameter.multicast) {
             upf_gtp_handle_multicast(recvbuf);
         }
@@ -210,6 +210,7 @@ static void _gtpv1_tun_recv_common_cb(
     }
 
     /* Increment total & dl octets + pkts */
+    //使用匹配到的PDR统计流量信息
     for (i = 0; i < pdr->num_of_urr; i++)
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
 
@@ -229,7 +230,7 @@ static void _gtpv1_tun_recv_common_cb(
         UPF_METR_CTR_GTP_OUTDATAVOLUMEQOSLEVELN3UPF, recvbuf->len);
 #endif
 
-    if (report.type.downlink_data_report) {
+    if (report.type.downlink_data_report) { //发送下行数据报告给控制面
         ogs_assert(pdr->sess);
         sess = UPF_SESS(pdr->sess);
         ogs_assert(sess);
@@ -283,7 +284,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     ogs_assert(pkbuf);
     ogs_pkbuf_reserve(pkbuf, OGS_TUN_MAX_HEADROOM);
     ogs_pkbuf_put(pkbuf, OGS_MAX_PKT_LEN-OGS_TUN_MAX_HEADROOM);
-
+    // 从socket接收一个报文到缓冲区pkbuf
     size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
     if (size <= 0) {
         ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
@@ -295,14 +296,14 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
     ogs_assert(pkbuf);
     ogs_assert(pkbuf->len);
-
+    // 解析GTP头,判断报文类型
     gtp_h = (ogs_gtp2_header_t *)pkbuf->data;
     if (gtp_h->version != OGS_GTP2_VERSION_1) {
         ogs_error("[DROP] Invalid GTPU version [%d]", gtp_h->version);
         ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
         goto cleanup;
     }
-
+    // 空口回送请求? --->发送回复
     if (gtp_h->type == OGS_GTPU_MSGTYPE_ECHO_REQ) {
         ogs_pkbuf_t *echo_rsp;
 
@@ -331,7 +332,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             gtp_h->type, OGS_ADDR(&from, buf1), teid);
 
     qfi = 0;
-    if (gtp_h->flags & OGS_GTPU_FLAGS_E) {
+    if (gtp_h->flags & OGS_GTPU_FLAGS_E) { //扩展头处理
         /*
          * TS29.281
          * 5.2.1 General format of the GTP-U Extension Header
@@ -423,7 +424,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 UPF_METR_CTR_GTP_INDATAVOLUMEQOSLEVELN3UPF, pkbuf->len);
 #endif
 
-        pfcp_object = ogs_pfcp_object_find_by_teid(teid);
+        pfcp_object = ogs_pfcp_object_find_by_teid(teid);  //Tunnel End Point identifier
         if (!pfcp_object) {
             /*
              * TS23.527 Restoration procedures
@@ -458,7 +459,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             pfcp_sess = (ogs_pfcp_sess_t *)pfcp_object;
             ogs_assert(pfcp_sess);
 
-            ogs_list_for_each(&pfcp_sess->pdr_list, pdr) {
+            ogs_list_for_each(&pfcp_sess->pdr_list, pdr) { // 根据teid找出的pfcp 查找pdr和会话信息
 
                 /* Check if Source Interface */
                 if (pdr->src_if != OGS_PFCP_INTERFACE_ACCESS &&
@@ -643,7 +644,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             goto cleanup;
         }
 
-        if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
+        if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {         //根据FAR的配置,将报文发往内核态Tun接口或丢弃
 
             if (!subnet) {
 #if 0 /* It's redundant log message */
@@ -659,7 +660,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
             /* Increment total & ul octets + pkts */
             for (i = 0; i < pdr->num_of_urr; i++)
-                upf_sess_urr_acc_add(sess, pdr->urr[i], pkbuf->len, true);
+                upf_sess_urr_acc_add(sess, pdr->urr[i], pkbuf->len, true);  // 更新流量统计
 
             if (dev->is_tap) {
                 ogs_assert(eth_type);
@@ -779,7 +780,7 @@ int upf_gtp_open(void)
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
     int rc;
-
+    //处理下行数据报文
     ogs_list_for_each(&ogs_gtp_self()->gtpu_list, node) {
         sock = ogs_gtp_server(node);
         if (!sock) return OGS_ERROR;
@@ -806,7 +807,7 @@ int upf_gtp_open(void)
      * $ sudo ifconfig ogstun 45.45.0.1/16 up
      *
      */
-
+    // 上行
     /* Open Tun interface */
     ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
         dev->is_tap = strstr(dev->ifname, "tap");
@@ -819,7 +820,7 @@ int upf_gtp_open(void)
         if (dev->is_tap) {
             _get_dev_mac_addr(dev->ifname, dev->mac_addr);
             dev->poll = ogs_pollset_add(ogs_app()->pollset,
-                    OGS_POLLIN, dev->fd, _gtpv1_tun_recv_eth_cb, NULL);
+                    OGS_POLLIN, dev->fd, _gtpv1_tun_recv_eth_cb, NULL); 
             ogs_assert(dev->poll);
         } else {
             dev->poll = ogs_pollset_add(ogs_app()->pollset,
@@ -827,7 +828,7 @@ int upf_gtp_open(void)
             ogs_assert(dev->poll);
         }
 
-        ogs_assert(dev->poll);
+        ogs_assert(dev->poll); 
     }
 
     /*

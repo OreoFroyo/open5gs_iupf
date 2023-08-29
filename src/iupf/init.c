@@ -17,10 +17,10 @@
  * along with this program.  If not, see <https://www.gnu.org/licenses/>.
  */
 
-#include "./upf/context.h"
-#include "./upf/gtp-path.h"
-#include "./upf/pfcp-path.h"
-#include "./upf/metrics.h"
+#include "context.h"
+#include "gtp-path.h"
+#include "pfcp-path.h"
+#include "metrics.h"
 
 static ogs_thread_t *thread;
 static void iupf_main(void *data);
@@ -31,28 +31,28 @@ int iupf_initialize(void)
 {
     int rv;
 
-    upf_metrics_init();
+    upf_metrics_init(); //所有测量指标初始化
 
-    ogs_gtp_context_init(OGS_MAX_NUM_OF_GTPU_RESOURCE);
+    ogs_gtp_context_init(OGS_MAX_NUM_OF_GTPU_RESOURCE);  //初始化gtp上下文（pool）
     ogs_pfcp_context_init();
 
     upf_context_init();
     upf_event_init();
-    upf_gtp_init();
+    upf_gtp_init(); //是否需要？
 
     rv = ogs_pfcp_xact_init(); 
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_gtp_context_parse_config("iupf", "smf");
+    rv = ogs_gtp_context_parse_config("iupf", "smf");   //读取iupf.yaml gtp地址
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_pfcp_context_parse_config("iupf", "smf");
+    rv = ogs_pfcp_context_parse_config("iupf", "smf");  //读取iupf.yaml pfcp地址
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_metrics_context_parse_config("iupf");
+    rv = ogs_metrics_context_parse_config("iupf");   //读取iupf.yaml metrics地址
     if (rv != OGS_OK) return rv;
 
-    rv = upf_context_parse_config();
+    rv = upf_context_parse_config();   
     if (rv != OGS_OK) return rv;
 
     rv = ogs_log_config_domain(
