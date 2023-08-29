@@ -43,10 +43,10 @@ int upf_initialize(void)
     rv = ogs_pfcp_xact_init();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_gtp_context_parse_config("upf", "smf");
+    rv = ogs_gtp_context_parse_config("upf", "smf"); //user plane
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_pfcp_context_parse_config("upf", "smf");
+    rv = ogs_pfcp_context_parse_config("upf", "smf"); // control plane
     if (rv != OGS_OK) return rv;
 
     rv = ogs_metrics_context_parse_config("upf");
@@ -62,12 +62,12 @@ int upf_initialize(void)
     rv = ogs_pfcp_ue_pool_generate();
     if (rv != OGS_OK) return rv;
 
-    ogs_metrics_context_open(ogs_metrics_self());
+    ogs_metrics_context_open(ogs_metrics_self()); // useless for now
 
-    rv = upf_pfcp_open();
+    rv = upf_pfcp_open(); //
     if (rv != OGS_OK) return rv;
 
-    rv = upf_gtp_open();
+    rv = upf_gtp_open(); // 
     if (rv != OGS_OK) return rv;
 
     thread = ogs_thread_create(upf_main, NULL);

@@ -435,7 +435,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
 
     /* Select UPF based on UE Location Information */
     smf_sess_select_upf(sess);
-
+    
     /* Check if selected UPF is associated with SMF */
     ogs_assert(sess->pfcp_node);
     if (!OGS_FSM_CHECK(&sess->pfcp_node->sm, smf_pfcp_state_associated)) {

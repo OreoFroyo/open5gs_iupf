@@ -66,6 +66,9 @@ typedef struct ogs_pfcp_context_s {
     ogs_list_t      pfcp_peer_list; /* PFCP Node List */
     ogs_pfcp_node_t *pfcp_node;     /* Iterator for Peer round-robin */
 
+    ogs_list_t      ipfcp_peer_list; /* PFCP as I-UPF*/
+
+
     ogs_list_t      dev_list;       /* Tun Device List */
     ogs_list_t      subnet_list;    /* UE Subnet List */
 
