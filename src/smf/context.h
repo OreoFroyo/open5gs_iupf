@@ -416,6 +416,7 @@ typedef struct smf_sess_s {
 
     ogs_gtp_node_t  *gnode;
     ogs_pfcp_node_t *pfcp_node;
+    ogs_pfcp_node_t *pfcp_node_i;
 
     smf_ue_t *smf_ue;
 
@@ -449,6 +450,7 @@ smf_sess_t *smf_sess_add_by_sbi_message(ogs_sbi_message_t *message);
 smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi);
 
 void smf_sess_select_upf(smf_sess_t *sess);
+void smf_sess_select_iupf(smf_sess_t *sess);
 uint8_t smf_sess_set_ue_ip(smf_sess_t *sess);
 void smf_sess_set_paging_n1n2message_location(
         smf_sess_t *sess, char *n1n2message_location);
