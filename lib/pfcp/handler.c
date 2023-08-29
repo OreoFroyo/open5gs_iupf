@@ -117,7 +117,7 @@ bool ogs_pfcp_cp_handle_association_setup_request(
     }
 
     if (req->cp_function_features.presence) {
-        ogs_info("modify by jiashengwu: now have cp_function_features: %d",req->cp_function_features.data);
+        ogs_info("modify by jiashengwu: now have cp_function_features: %d",req->cp_function_features.u8);
     }
 
     if (req->up_function_features.presence) {
