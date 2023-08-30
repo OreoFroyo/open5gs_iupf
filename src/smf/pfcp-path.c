@@ -216,9 +216,9 @@ static void ipfcp_recv_cb(short when, ogs_socket_t fd, void *data)
     e = smf_event_new(SMF_EVT_N4_MESSAGE);
     ogs_assert(e);
 
-    node = ogs_pfcp_node_find(&ogs_pfcp_self()->pfcp_peer_list, &from);
+    node = ogs_pfcp_node_find(&ogs_pfcp_self()->ipfcp_peer_list, &from);
     if (!node) {
-        node = ogs_pfcp_node_add(&ogs_pfcp_self()->pfcp_peer_list, &from);
+        node = ogs_pfcp_node_add(&ogs_pfcp_self()->ipfcp_peer_list, &from);
         ogs_assert(node);
 
         node->sock = data;
