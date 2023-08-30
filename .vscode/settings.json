@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "ogs-core.h": "c",
-        "ogs-app.h": "c"
+        "ogs-app.h": "c",
+        "ngap_initialcontextsetuprequest.h": "c"
     }
 }

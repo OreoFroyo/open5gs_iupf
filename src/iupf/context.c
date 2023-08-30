@@ -38,7 +38,7 @@ void upf_context_init(void)
     /* Initialize UPF context */
     memset(&self, 0, sizeof(upf_context_t));
 
-    ogs_log_install_domain(&__upf_log_domain, "upf", ogs_core()->log.level);
+    ogs_log_install_domain(&__upf_log_domain, "iupf", ogs_core()->log.level);
 
     /* Setup UP Function Features */
     ogs_pfcp_self()->up_function_features.ftup = 1;
