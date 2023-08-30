@@ -464,7 +464,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                     family, hostname[i], port, 0);
                             ogs_assert(rv == OGS_OK);
                         }
-                        ogs_info("you are good")
+                        ogs_info("you are good");
                         if (addr) {
                             if (ogs_app()->parameter.no_ipv4 == 0)
                                 ogs_socknode_add(
