@@ -442,6 +442,13 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_error("[%s:%d] No associated UPF", smf_ue->supi, sess->psi);
         return false;
     }
+//todo:改这里
+    smf_sess_select_iupf(sess); 
+    ogs_assert(sess->pfcp_node);
+    if (!OGS_FSM_CHECK(&sess->pfcp_node->sm, smf_pfcp_state_associated)) {
+        ogs_error("[%s:%d] No associated IUPF", smf_ue->supi, sess->psi);
+        return false;
+    }
 
     /* Remove all previous QoS flow */
     smf_bearer_remove_all(sess);
