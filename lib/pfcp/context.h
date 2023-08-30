@@ -46,6 +46,7 @@ typedef struct ogs_pfcp_context_s {
 
     const char      *tun_ifname;    /* PFCP TUN Interface Name */
 
+    ogs_list_t      ipfcp_list;      /* PFCP IPv4 Server List */
     ogs_list_t      pfcp_list;      /* PFCP IPv4 Server List */
     ogs_list_t      pfcp_list6;     /* PFCP IPv6 Server List */
     ogs_sockaddr_t  *pfcp_advertise; /* PFCP Advertise Addr */

@@ -1193,7 +1193,7 @@ void smf_sess_select_iupf(smf_sess_t *sess)
      */
     if (ogs_pfcp_self()->pfcp_node == NULL)
         ogs_pfcp_self()->pfcp_node =
-            ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list);
+            ogs_list_last(&ogs_pfcp_self()->ipfcp_peer_list);
 
     /* setup GTP session with selected UPF */
     ogs_pfcp_self()->pfcp_node =

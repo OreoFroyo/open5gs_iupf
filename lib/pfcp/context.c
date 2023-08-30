@@ -348,7 +348,180 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 NULL, self.pfcp_port, NULL);
                         ogs_assert(rv == OGS_OK);
                     }
-                } else if (!strcmp(local_key, "subnet")) {
+                } else if(!strcmp(local_key, "ipfcp")){
+                    ogs_yaml_iter_t pfcp_array, pfcp_iter;
+                    ogs_yaml_iter_recurse(&local_iter, &pfcp_array);
+                    do {
+                        int family = AF_UNSPEC;
+                        int i, num = 0;
+                        const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
+                        int num_of_advertise = 0;
+                        const char *advertise[OGS_MAX_NUM_OF_HOSTNAME];
+                        uint16_t port = self.pfcp_port;
+                        const char *dev = NULL;
+                        ogs_sockaddr_t *addr = NULL;
+
+                        ogs_sockopt_t option;
+                        bool is_option = false;
+
+                        if (ogs_yaml_iter_type(&pfcp_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&pfcp_iter, &pfcp_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&pfcp_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&pfcp_array))
+                                break;
+                            ogs_yaml_iter_recurse(&pfcp_array, &pfcp_iter);
+                        } else if (ogs_yaml_iter_type(&pfcp_array) ==
+                            YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&pfcp_iter)) {
+                            const char *pfcp_key =
+                                ogs_yaml_iter_key(&pfcp_iter);
+                            ogs_assert(pfcp_key);
+                            if (!strcmp(pfcp_key, "family")) {
+                                const char *v = ogs_yaml_iter_value(&pfcp_iter);
+                                if (v) family = atoi(v);
+                                if (family != AF_UNSPEC &&
+                                    family != AF_INET && family != AF_INET6) {
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
+                                        "AF_INET(%d), AF_INET6(%d) ",
+                                        family, AF_UNSPEC, AF_INET, AF_INET6);
+                                    family = AF_UNSPEC;
+                                }
+                            } else if (!strcmp(pfcp_key, "addr") ||
+                                    !strcmp(pfcp_key, "name")) {
+                                ogs_yaml_iter_t hostname_iter;
+                                ogs_yaml_iter_recurse(&pfcp_iter,
+                                        &hostname_iter);
+                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
+                                    YAML_MAPPING_NODE);
+
+                                do {
+                                    if (ogs_yaml_iter_type(&hostname_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(
+                                                    &hostname_iter))
+                                            break;
+                                    }
+
+                                    ogs_assert(num < OGS_MAX_NUM_OF_HOSTNAME);
+                                    hostname[num++] =
+                                        ogs_yaml_iter_value(&hostname_iter);
+                                } while (
+                                    ogs_yaml_iter_type(&hostname_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else if (!strcmp(pfcp_key, "advertise")) {
+                                ogs_yaml_iter_t hostname_iter;
+                                ogs_yaml_iter_recurse(&pfcp_iter,
+                                        &hostname_iter);
+                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
+                                    YAML_MAPPING_NODE);
+
+                                do {
+                                    if (ogs_yaml_iter_type(&hostname_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(
+                                                    &hostname_iter))
+                                            break;
+                                    }
+
+                                    ogs_assert(num < OGS_MAX_NUM_OF_HOSTNAME);
+                                    advertise[num_of_advertise++] =
+                                        ogs_yaml_iter_value(&hostname_iter);
+                                } while (
+                                    ogs_yaml_iter_type(&hostname_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else if (!strcmp(pfcp_key, "port")) {
+                                const char *v = ogs_yaml_iter_value(&pfcp_iter);
+                                if (v) {
+                                    port = atoi(v);
+                                    self.pfcp_port = port;
+                                }
+                            } else if (!strcmp(pfcp_key, "dev")) {
+                                dev = ogs_yaml_iter_value(&pfcp_iter);
+                            } else if (!strcmp(pfcp_key, "option")) {
+                                rv = ogs_app_config_parse_sockopt(
+                                        &pfcp_iter, &option);
+                                if (rv != OGS_OK) return rv;
+                                is_option = true;
+                            } else if (!strcmp(pfcp_key, "apn") ||
+                                        !strcmp(pfcp_key, "dnn")) {
+                                /* Skip */
+                            } else
+                                ogs_warn("unknown key `%s`", pfcp_key);
+                        }
+
+                        addr = NULL;
+                        for (i = 0; i < num; i++) {
+                            rv = ogs_addaddrinfo(&addr,
+                                    family, hostname[i], port, 0);
+                            ogs_assert(rv == OGS_OK);
+                        }
+
+                        if (addr) {
+                            if (ogs_app()->parameter.no_ipv4 == 0)
+                                ogs_socknode_add(
+                                    &self.ipfcp_list, AF_INET, addr,
+                                    is_option ? &option : NULL);
+                            if (ogs_app()->parameter.no_ipv6 == 0)
+                                ogs_socknode_add(
+                                    &self.pfcp_list6, AF_INET6, addr,
+                                    is_option ? &option : NULL);
+                            ogs_freeaddrinfo(addr);
+                        }
+
+                        addr = NULL;
+                        for (i = 0; i < num_of_advertise; i++) {
+                            rv = ogs_addaddrinfo(&addr,
+                                    family, advertise[i], port, 0);
+                            ogs_assert(rv == OGS_OK);
+                        }
+
+                        if (addr) {
+                            if (ogs_app()->parameter.no_ipv4 == 0 &&
+                                !self.pfcp_advertise) {
+                                ogs_copyaddrinfo(&self.pfcp_advertise, addr);
+                                ogs_filteraddrinfo(&self.pfcp_advertise, AF_INET);
+                            }
+                            if (ogs_app()->parameter.no_ipv6 == 0 &&
+                                !self.pfcp_advertise6) {
+                                ogs_copyaddrinfo(&self.pfcp_advertise6, addr);
+                                ogs_filteraddrinfo(&self.pfcp_advertise6, AF_INET6);
+                            }
+                            ogs_freeaddrinfo(addr);
+                        }
+
+                        if (dev) {
+                            rv = ogs_socknode_probe(
+                                    ogs_app()->parameter.no_ipv4 ?
+                                        NULL : &self.ipfcp_list,
+                                    ogs_app()->parameter.no_ipv6 ?
+                                        NULL : &self.pfcp_list6,
+                                    dev, self.pfcp_port,
+                                    is_option ? &option : NULL);
+                            ogs_assert(rv == OGS_OK);
+                        }
+
+                    } while (ogs_yaml_iter_type(&pfcp_array) ==
+                            YAML_SEQUENCE_NODE);
+
+                    if (ogs_list_first(&self.ipfcp_list) == NULL &&
+                        ogs_list_first(&self.pfcp_list6) == NULL) {
+                        rv = ogs_socknode_probe(
+                                ogs_app()->parameter.no_ipv4 ?
+                                    NULL : &self.ipfcp_list,
+                                ogs_app()->parameter.no_ipv6 ?
+                                    NULL : &self.pfcp_list6,
+                                NULL, self.pfcp_port, NULL);
+                        ogs_assert(rv == OGS_OK);
+                    }
+                }else if (!strcmp(local_key, "subnet")) {
                     ogs_yaml_iter_t subnet_array, subnet_iter;
                     ogs_yaml_iter_recurse(&local_iter, &subnet_array);
 
