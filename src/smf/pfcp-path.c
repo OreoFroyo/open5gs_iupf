@@ -269,7 +269,7 @@ int smf_pfcp_open(void)
     }
 
     OGS_SETUP_PFCP_SERVER;
-    OGS_SETUP_IPFCP_SERVER;
+    // OGS_SETUP_IPFCP_SERVER;
 
     return OGS_OK;
 }
