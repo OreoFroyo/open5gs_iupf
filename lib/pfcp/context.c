@@ -352,7 +352,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                         ogs_assert(rv == OGS_OK);
                     }
                 }else if(!strcmp(local_key, "ipfcp")){
-                    ogs_info("you are good")
+                    ogs_info("you are good");
                     ogs_yaml_iter_t pfcp_array, pfcp_iter;
                     ogs_yaml_iter_recurse(&local_iter, &pfcp_array);
                     do {
