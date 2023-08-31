@@ -241,15 +241,15 @@ int smf_pfcp_open(void)
     ogs_sock_t *sock = NULL;
 
     /* PFCP Server */
-     ogs_list_for_each(&ogs_pfcp_self()->ipfcp_list, node) {
-        ogs_info("add by jiashengwu:%s",node->addr->hostname);
-        sock = ogs_pfcp_server(node);
-        if (!sock) return OGS_ERROR;
+    //  ogs_list_for_each(&ogs_pfcp_self()->ipfcp_list, node) {
+    //     ogs_info("add by jiashengwu:%s",node->addr->hostname);
+    //     sock = ogs_pfcp_server(node);
+    //     if (!sock) return OGS_ERROR;
 
-        node->poll = ogs_pollset_add(ogs_app()->pollset,
-                OGS_POLLIN, sock->fd, ipfcp_recv_cb, sock);
-        ogs_assert(node->poll);
-    }
+    //     node->poll = ogs_pollset_add(ogs_app()->pollset,
+    //             OGS_POLLIN, sock->fd, ipfcp_recv_cb, sock);
+    //     ogs_assert(node->poll);
+    // }
 
     ogs_list_for_each(&ogs_pfcp_self()->pfcp_list, node) {
         sock = ogs_pfcp_server(node);
@@ -269,7 +269,8 @@ int smf_pfcp_open(void)
     }
 
     OGS_SETUP_PFCP_SERVER;
-
+    OGS_SETUP_IPFCP_SERVER;
+    
     return OGS_OK;
 }
 
