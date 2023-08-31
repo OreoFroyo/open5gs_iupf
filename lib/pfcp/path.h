@@ -33,22 +33,6 @@ extern "C" {
     do { \
         ogs_pfcp_node_t *pfcp_node = NULL; \
         \
-        ogs_pfcp_self()->pfcp_sock = \
-            ogs_socknode_sock_first(&ogs_pfcp_self()->pfcp_list); \
-        ogs_pfcp_self()->pfcp_sock6 = \
-            ogs_socknode_sock_first(&ogs_pfcp_self()->pfcp_list6); \
-        \
-        ogs_assert(ogs_pfcp_self()->pfcp_sock || ogs_pfcp_self()->pfcp_sock6); \
-        \
-        if (ogs_pfcp_self()->pfcp_sock) \
-            ogs_pfcp_self()->pfcp_addr = \
-                &ogs_pfcp_self()->pfcp_sock->local_addr; \
-        if (ogs_pfcp_self()->pfcp_sock6) \
-            ogs_pfcp_self()->pfcp_addr6 = \
-                &ogs_pfcp_self()->pfcp_sock6->local_addr; \
-        \
-        ogs_assert(ogs_pfcp_self()->pfcp_addr || ogs_pfcp_self()->pfcp_addr6); \
-        \
         ogs_list_for_each(&ogs_pfcp_self()->ipfcp_peer_list, pfcp_node) \
             pfcp_node_fsm_init(pfcp_node, true); \
         \
