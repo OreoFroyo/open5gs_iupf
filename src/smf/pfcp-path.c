@@ -164,76 +164,76 @@ static void pfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 }
 
 
-static void ipfcp_recv_cb(short when, ogs_socket_t fd, void *data)
-{
-    int rv;
+// static void ipfcp_recv_cb(short when, ogs_socket_t fd, void *data)
+// {
+//     int rv;
 
-    ssize_t size;
-    smf_event_t *e = NULL;
-    ogs_pkbuf_t *pkbuf = NULL;
-    ogs_sockaddr_t from;
-    ogs_pfcp_node_t *node = NULL;
-    ogs_pfcp_header_t *h = NULL;
+//     ssize_t size;
+//     smf_event_t *e = NULL;
+//     ogs_pkbuf_t *pkbuf = NULL;
+//     ogs_sockaddr_t from;
+//     ogs_pfcp_node_t *node = NULL;
+//     ogs_pfcp_header_t *h = NULL;
 
-    ogs_assert(fd != INVALID_SOCKET);
+//     ogs_assert(fd != INVALID_SOCKET);
 
-    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-    ogs_assert(pkbuf);
-    ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
+//     pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+//     ogs_assert(pkbuf);
+//     ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
 
-    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
-    if (size <= 0) {
-        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
-                "ogs_recvfrom() failed");
-        ogs_pkbuf_free(pkbuf);
-        return;
-    }
+//     size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
+//     if (size <= 0) {
+//         ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+//                 "ogs_recvfrom() failed");
+//         ogs_pkbuf_free(pkbuf);
+//         return;
+//     }
 
-    ogs_pkbuf_trim(pkbuf, size);
+//     ogs_pkbuf_trim(pkbuf, size);
 
-    h = (ogs_pfcp_header_t *)pkbuf->data;
+//     h = (ogs_pfcp_header_t *)pkbuf->data;
 
-    /*TODO:加在这里*/
-    if (h->version != OGS_PFCP_VERSION) {
-        ogs_pfcp_header_t rsp;
+//     /*TODO:加在这里*/
+//     if (h->version != OGS_PFCP_VERSION) {
+//         ogs_pfcp_header_t rsp;
 
-        ogs_error("Not supported version[%d]", h->version);
+//         ogs_error("Not supported version[%d]", h->version);
 
-        memset(&rsp, 0, sizeof rsp);
-        rsp.flags = (OGS_PFCP_VERSION << 5);
-        rsp.type = OGS_PFCP_VERSION_NOT_SUPPORTED_RESPONSE_TYPE;
-        rsp.length = htobe16(4);
-        rsp.sqn_only = h->sqn_only;
-        if (ogs_sendto(fd, &rsp, 8, 0, &from) < 0) {
-            ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
-                    "ogs_sendto() failed");
-        }
-        ogs_pkbuf_free(pkbuf);
+//         memset(&rsp, 0, sizeof rsp);
+//         rsp.flags = (OGS_PFCP_VERSION << 5);
+//         rsp.type = OGS_PFCP_VERSION_NOT_SUPPORTED_RESPONSE_TYPE;
+//         rsp.length = htobe16(4);
+//         rsp.sqn_only = h->sqn_only;
+//         if (ogs_sendto(fd, &rsp, 8, 0, &from) < 0) {
+//             ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+//                     "ogs_sendto() failed");
+//         }
+//         ogs_pkbuf_free(pkbuf);
 
-        return;
-    }
+//         return;
+//     }
 
-    e = smf_event_new(SMF_EVT_N4_MESSAGE);
-    ogs_assert(e);
+//     e = smf_event_new(SMF_EVT_N4_MESSAGE);
+//     ogs_assert(e);
 
-    node = ogs_pfcp_node_find(&ogs_pfcp_self()->ipfcp_peer_list, &from);
-    if (!node) {
-        node = ogs_pfcp_node_add(&ogs_pfcp_self()->ipfcp_peer_list, &from);
-        ogs_assert(node);
+//     node = ogs_pfcp_node_find(&ogs_pfcp_self()->ipfcp_peer_list, &from);
+//     if (!node) {
+//         node = ogs_pfcp_node_add(&ogs_pfcp_self()->ipfcp_peer_list, &from);
+//         ogs_assert(node);
 
-        node->sock = data;
-        pfcp_node_fsm_init(node, false);
-    }
-    e->pfcp_node = node;
-    e->pkbuf = pkbuf;
+//         node->sock = data;
+//         pfcp_node_fsm_init(node, false);
+//     }
+//     e->pfcp_node = node;
+//     e->pkbuf = pkbuf;
 
-    rv = ogs_queue_push(ogs_app()->queue, e);
-    if (rv != OGS_OK) {
-        ogs_error("ogs_queue_push() failed:%d", (int)rv);
-        ogs_pkbuf_free(e->pkbuf);
-        ogs_event_free(e);
-    }
-}
+//     rv = ogs_queue_push(ogs_app()->queue, e);
+//     if (rv != OGS_OK) {
+//         ogs_error("ogs_queue_push() failed:%d", (int)rv);
+//         ogs_pkbuf_free(e->pkbuf);
+//         ogs_event_free(e);
+//     }
+// }
 
 int smf_pfcp_open(void)
 {
@@ -270,7 +270,7 @@ int smf_pfcp_open(void)
 
     OGS_SETUP_PFCP_SERVER;
     OGS_SETUP_IPFCP_SERVER;
-    
+
     return OGS_OK;
 }
 
