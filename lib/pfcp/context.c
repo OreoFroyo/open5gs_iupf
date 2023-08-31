@@ -351,7 +351,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote) // for 
                                 NULL, self.pfcp_port, NULL);
                         ogs_assert(rv == OGS_OK);
                     }
-                }else if (!strcmp(local_key, "subnet")) {
+                } else if (!strcmp(local_key, "subnet")) {
                     ogs_yaml_iter_t subnet_array, subnet_iter;
                     ogs_yaml_iter_recurse(&local_iter, &subnet_array);
 
@@ -882,8 +882,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote) // for 
 
                         node = ogs_pfcp_node_new(addr);
                         ogs_assert(node);
-                        ogs_list_add(&self.pfcp_peer_list, node);
-
+                        ogs_list_add(&self.ipfcp_peer_list, node);
+                        ogs_info("complete for ipfcp,%s",node->addr.hostname);
                         node->num_of_tac = num_of_tac;
                         if (num_of_tac != 0)
                             memcpy(node->tac, tac, sizeof(node->tac));
