@@ -211,6 +211,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                             const char *pfcp_key =
                                 ogs_yaml_iter_key(&pfcp_iter);
                             ogs_assert(pfcp_key);
+                            ogs_info("%s",pfcp_key);
+
                             if (!strcmp(pfcp_key, "family")) {
                                 const char *v = ogs_yaml_iter_value(&pfcp_iter);
                                 if (v) family = atoi(v);
@@ -349,7 +351,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                 NULL, self.pfcp_port, NULL);
                         ogs_assert(rv == OGS_OK);
                     }
-                } else if(!strcmp(local_key, "ipfcp")){
+                }else if(!strcmp(local_key, "ipfcp")){
+                    ogs_info("you are good")
                     ogs_yaml_iter_t pfcp_array, pfcp_iter;
                     ogs_yaml_iter_recurse(&local_iter, &pfcp_array);
                     do {
@@ -384,6 +387,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                             const char *pfcp_key =
                                 ogs_yaml_iter_key(&pfcp_iter);
                             ogs_assert(pfcp_key);
+                            ogs_info("%s",pfcp_key)
                             if (!strcmp(pfcp_key, "family")) {
                                 const char *v = ogs_yaml_iter_value(&pfcp_iter);
                                 if (v) family = atoi(v);
@@ -464,7 +468,6 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote)
                                     family, hostname[i], port, 0);
                             ogs_assert(rv == OGS_OK);
                         }
-                        ogs_info("you are good")
                         if (addr) {
                             if (ogs_app()->parameter.no_ipv4 == 0)
                                 ogs_socknode_add(
