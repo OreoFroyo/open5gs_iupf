@@ -177,6 +177,20 @@ upf:
       - addr: 127.0.0.7
         port: 9090
 
+iupf:
+    pfcp:
+      - addr: 127.0.0.17
+    gtpu:
+      - addr: 127.0.0.17
+    subnet:
+      - addr: 10.45.0.1/16
+      - addr: 2001:db8:cafe::1/48
+    metrics:
+      - addr: 127.0.0.17
+        port: 9090
+      
+
+
 hss:
     freeDiameter:
       identity: hss.localdomain
