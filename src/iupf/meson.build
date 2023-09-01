@@ -104,7 +104,7 @@ libupf_dep = declare_dependency(
         libarp_nd_dep,
     ])
 
-upf_sources = files('''
+iupf_sources = files('''
     app.c
     ../main.c
 '''.split())
