@@ -1181,6 +1181,46 @@ void smf_sess_select_upf(smf_sess_t *sess)
 }
 
 
+static ogs_pfcp_node_t *selected_iupf_node(
+        ogs_pfcp_node_t *current, smf_sess_t *sess)
+{
+    ogs_pfcp_node_t *next, *node;
+
+    ogs_assert(current);
+    ogs_assert(sess);
+
+    /* continue search from current position */
+    next = ogs_list_next(current);
+    for (node = next; node; node = ogs_list_next(node)) {
+        if (OGS_FSM_CHECK(&node->sm, smf_pfcp_state_associated) &&
+            compare_ue_info(node, sess) == true) return node;
+    }
+    /* cyclic search from top to current position */
+    for (node = ogs_list_first(&ogs_pfcp_self()->ipfcp_peer_list);
+            node != next; node = ogs_list_next(node)) {
+        if (OGS_FSM_CHECK(&node->sm, smf_pfcp_state_associated) &&
+            compare_ue_info(node, sess) == true) return node;
+    }                                                                                                                                         
+
+    if (ogs_app()->parameter.no_pfcp_rr_select == 0) {
+        /* continue search from current position */
+        next = ogs_list_next(current);
+        for (node = next; node; node = ogs_list_next(node)) {
+            if (OGS_FSM_CHECK(&node->sm, smf_pfcp_state_associated))
+                return node;
+        }
+        /* cyclic search from top to current position */
+        for (node = ogs_list_first(&ogs_pfcp_self()->ipfcp_peer_list);
+                node != next; node = ogs_list_next(node)) {
+            if (OGS_FSM_CHECK(&node->sm, smf_pfcp_state_associated))
+                return node;
+        }
+    }
+
+    ogs_error("No IUPFs are PFCP associated that are suited to RR");
+    return ogs_list_first(&ogs_pfcp_self()->ipfcp_peer_list);
+}
+
 void smf_sess_select_iupf(smf_sess_t *sess)
 {
     char buf[OGS_ADDRSTRLEN];
@@ -1197,7 +1237,7 @@ void smf_sess_select_iupf(smf_sess_t *sess)
 
     /* setup GTP session with selected UPF */
     ogs_pfcp_self()->pfcp_node =
-        selected_upf_node(ogs_pfcp_self()->pfcp_node, sess);
+        selected_iupf_node(ogs_pfcp_self()->pfcp_node, sess);
     ogs_assert(ogs_pfcp_self()->pfcp_node);
     OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
     ogs_debug("UE using UPF on IP[%s]",
