@@ -47,10 +47,10 @@ int smf_initialize(void)
     rv = ogs_pfcp_xact_init();
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_gtp_context_parse_config("smf", "iupf");
+    rv = ogs_gtp_context_parse_config("smf", "upf");
     if (rv != OGS_OK) return rv;
 
-    rv = ogs_pfcp_context_parse_config("smf", "iupf");
+    rv = ogs_pfcp_context_parse_config("smf", "upf");
     if (rv != OGS_OK) return rv;
 
     rv = ogs_sbi_context_parse_config("smf", "nrf", "scp");
