@@ -225,6 +225,7 @@ bool ogs_pfcp_up_handle_pdr(
         ogs_pfcp_pdr_t *pdr, uint8_t type, ogs_pkbuf_t *recvbuf,
         ogs_pfcp_user_plane_report_t *report)
 {
+    ogs_info("ogs_pfcp_up_handle_pdr");
     ogs_pfcp_far_t *far = NULL;
     ogs_pkbuf_t *sendbuf = NULL;
     bool buffering;
@@ -248,6 +249,7 @@ bool ogs_pfcp_up_handle_pdr(
     buffering = false;
 
     if (!far->gnode) {
+        ogs_info("buffering is true!");
         buffering = true;
 
     } else {

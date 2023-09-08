@@ -24,7 +24,7 @@ ogs_sock_t *ogs_gtp_server(ogs_socknode_t *node)
     char buf[OGS_ADDRSTRLEN];
     ogs_sock_t *gtp;
     ogs_assert(node);
-
+ 
     gtp = ogs_udp_server(node->addr, node->option);
     if (gtp) {
         ogs_info("gtp_server() [%s]:%d",

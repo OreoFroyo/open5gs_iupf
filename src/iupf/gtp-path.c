@@ -117,8 +117,9 @@ static void _gtpv1_tun_recv_common_cb(
         ogs_warn("ogs_tun_read() failed");
         return;
     }
-    // 判断报文类型：如果是以太网报文,进行ARP或ND请求的响应
+    //不进入
     if (has_eth) {
+        ogs_info("packet is has_eth!");
         ogs_pkbuf_t *replybuf = NULL;
         uint16_t eth_type = _get_eth_type(recvbuf->data, recvbuf->len);
         uint8_t size;
@@ -161,7 +162,6 @@ static void _gtpv1_tun_recv_common_cb(
         }
         ogs_pkbuf_pull(recvbuf, ETHER_HDR_LEN);
     }
-
     sess = upf_sess_find_by_ue_ip_address(recvbuf);
     if (!sess)
         goto cleanup;
@@ -213,8 +213,8 @@ static void _gtpv1_tun_recv_common_cb(
     //使用匹配到的PDR统计流量信息
     for (i = 0; i < pdr->num_of_urr; i++)
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
-
-    ogs_assert(true == ogs_pfcp_up_handle_pdr(
+    ogs_info("---!tun_recv_common:_up_handle_pdr!");
+    ogs_assert(true == ogs_pfcp_up_handle_pdr(   //有发送
                 pdr, OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report));
 
     /*
@@ -238,7 +238,6 @@ static void _gtpv1_tun_recv_common_cb(
         report.downlink_data.pdr_id = pdr->id;
         if (pdr->qer && pdr->qer->qfi)
             report.downlink_data.qfi = pdr->qer->qfi; /* for 5GC */
-
         ogs_assert(OGS_OK ==
             upf_pfcp_send_session_report_request(sess, &report));
     }
@@ -534,7 +533,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
              *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
              */
             if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
-
+                ogs_info("_gtpv1_u_recv_cb---!OGS_PFCP_INTERFACE_ACCESS!");
                 if (src_addr[0] == sess->ipv4->addr[0]) {
                     /* Source IP address should be matched in uplink */
                 } else if (check_framed_routes(sess, AF_INET, src_addr)) {
@@ -645,7 +644,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         }
 
         if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {         //根据FAR的配置,将报文发往内核态Tun接口或丢弃
-
+            ogs_info("_gtpv1_u_recv_cb---!OGS_PFCP_INTERFACE_CORE!");
             if (!subnet) {
 #if 0 /* It's redundant log message */
                 ogs_error("[DROP] Cannot find subnet V:%d, IPv4:%p, IPv6:%p",
@@ -704,7 +703,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                             far->apply_action);
                 goto cleanup;
             }
-
+            ogs_info("---!gtpV1_u_recv:ogs_pfcp_up_handle_pdr!");
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
                         pdr, gtp_h->type, pkbuf, &report));
 
@@ -780,7 +779,7 @@ int upf_gtp_open(void)
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
     int rc;
-    //处理下行数据报文
+    //上行数据
     ogs_list_for_each(&ogs_gtp_self()->gtpu_list, node) {
         sock = ogs_gtp_server(node);
         if (!sock) return OGS_ERROR;
@@ -807,8 +806,8 @@ int upf_gtp_open(void)
      * $ sudo ifconfig ogstun 45.45.0.1/16 up
      *
      */
-    // 上行
     /* Open Tun interface */
+    // 下行数据
     ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
         dev->is_tap = strstr(dev->ifname, "tap");
         dev->fd = ogs_tun_open(dev->ifname, OGS_MAX_IFNAME_LEN, dev->is_tap);
@@ -817,7 +816,7 @@ int upf_gtp_open(void)
             return OGS_ERROR;
         }
 
-        if (dev->is_tap) {
+        if (dev->is_tap) { 
             _get_dev_mac_addr(dev->ifname, dev->mac_addr);
             dev->poll = ogs_pollset_add(ogs_app()->pollset,
                     OGS_POLLIN, dev->fd, _gtpv1_tun_recv_eth_cb, NULL); 

@@ -26,7 +26,7 @@ int ogs_gtp2_send_user_plane(
 {
     char buf[OGS_ADDRSTRLEN];
     int rv;
-
+    ogs_info("fill header and send to [%s]",OGS_ADDR(&gnode->addr, buf));
     ogs_gtp2_fill_header(gtp_hdesc, ext_hdesc, pkbuf);
 
     ogs_trace("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
