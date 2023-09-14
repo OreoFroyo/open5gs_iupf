@@ -179,7 +179,6 @@ int upf_pfcp_send_session_establishment_response(
     memset(&h, 0, sizeof(ogs_pfcp_header_t));
     h.type = OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE;
     h.seid = sess->smf_n4_f_seid.seid;
-
     n4buf = upf_n4_build_session_establishment_response(
             h.type, sess, created_pdr, num_of_created_pdr);
     if (!n4buf) {

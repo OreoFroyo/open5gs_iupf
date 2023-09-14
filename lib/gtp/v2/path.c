@@ -45,6 +45,32 @@ int ogs_gtp2_send_user_plane(
     return rv;
 }
 
+int ogs_gtp2_send_user_plane_test(
+        ogs_gtp_node_t *gnode,
+        ogs_gtp2_header_t *gtp_hdesc, ogs_gtp2_extension_header_t *ext_hdesc,
+        ogs_pkbuf_t *pkbuf)
+{
+    char buf[OGS_ADDRSTRLEN];
+    int rv;
+    ogs_info("fill header and send to [%s]",OGS_ADDR(&gnode->addr, buf));
+    ogs_gtp2_fill_header(gtp_hdesc, ext_hdesc, pkbuf);
+
+    ogs_trace("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
+            gtp_hdesc->type, OGS_ADDR(&gnode->addr, buf), gtp_hdesc->teid);
+
+    rv = ogs_gtp_sendto_test(pkbuf);
+    if (rv != OGS_OK) {
+        if (ogs_socket_errno != OGS_EAGAIN) {
+            ogs_error("SEND GTP-U[%d] to Peer[%s] : TEID[0x%x]",
+                gtp_hdesc->type, OGS_ADDR(&gnode->addr, buf), gtp_hdesc->teid);
+        }
+    }
+
+    ogs_pkbuf_free(pkbuf);
+
+    return rv;
+}
+
 ogs_pkbuf_t *ogs_gtp2_handle_echo_req(ogs_pkbuf_t *pkb)
 {
     ogs_gtp2_header_t *gtph = NULL;

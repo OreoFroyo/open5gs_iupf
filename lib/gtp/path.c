@@ -129,6 +129,32 @@ int ogs_gtp_sendto(ogs_gtp_node_t *gnode, ogs_pkbuf_t *pkbuf)
     return OGS_OK;
 }
 
+int ogs_gtp_sendto_test(ogs_pkbuf_t *pkbuf)
+{
+    ssize_t sent;
+    ogs_assert(pkbuf);
+    // sock = gnode->sock;
+    // ogs_assert(sock);
+    // addr = &gnode->addr;
+    // ogs_assert(addr);
+    ogs_sockaddr_t haha;
+    ogs_sockaddr_t *to = &haha;
+    to->sa.sa_family = 2;
+    char addr1[14] = {'1','9','2','1','6','8','2','4','7','1','5','7'};
+    int i;
+    for(i=0;i<15;i++){
+        to->sa.sa_data[i] = addr1[i];
+    }
+    ogs_info("finally send!");
+    sent = ogs_sendto(7, pkbuf->data, pkbuf->len, 0, to);
+    if (sent < 0 || sent != pkbuf->len) {
+        ogs_info("finally send error!");
+        return OGS_ERROR;
+    }
+
+    return OGS_OK;
+}
+
 void ogs_gtp_send_error_message(
         ogs_gtp_xact_t *xact, uint32_t teid, uint8_t type, uint8_t cause_value)
 {

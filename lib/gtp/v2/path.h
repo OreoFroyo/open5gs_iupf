@@ -46,6 +46,10 @@ void ogs_gtp2_send_echo_response(ogs_gtp_xact_t *xact,
 
 void ogs_gtp1_send_error_indication(
         ogs_sock_t *sock, uint32_t teid, uint8_t qfi, const ogs_sockaddr_t *to);
+int ogs_gtp2_send_user_plane_test(
+        ogs_gtp_node_t *gnode,
+        ogs_gtp2_header_t *gtp_hdesc, ogs_gtp2_extension_header_t *ext_hdesc,
+        ogs_pkbuf_t *pkbuf);
 
 #ifdef __cplusplus
 }

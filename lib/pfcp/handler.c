@@ -286,6 +286,71 @@ bool ogs_pfcp_up_handle_pdr(
     return true;
 }
 
+bool ogs_pfcp_up_handle_pdr_test(
+        ogs_pfcp_pdr_t *pdr, uint8_t type, ogs_pkbuf_t *recvbuf,
+        ogs_pfcp_user_plane_report_t *report)
+{
+    ogs_info("ogs_pfcp_up_handle_pdr");
+    ogs_pfcp_far_t *far = NULL;
+    ogs_pkbuf_t *sendbuf = NULL;
+    bool buffering;
+
+    ogs_assert(recvbuf);
+    ogs_assert(type);
+    ogs_assert(pdr);
+    ogs_assert(report);
+
+    far = pdr->far;
+    ogs_assert(far);
+
+    memset(report, 0, sizeof(*report));
+
+    sendbuf = ogs_pkbuf_copy(recvbuf);
+    if (!sendbuf) {
+        ogs_error("ogs_pkbuf_copy() failed");
+        return false;
+    }
+
+    buffering = false;
+
+    if (!far->gnode) {
+        ogs_info("buffering is true!");
+        buffering = true;
+
+    } else {
+        if (far->apply_action & OGS_PFCP_APPLY_ACTION_FORW) {
+
+            /* Forward packet */
+            ogs_pfcp_send_g_pdu_test(pdr, type, sendbuf);
+
+        } else if (far->apply_action & OGS_PFCP_APPLY_ACTION_BUFF) {
+
+            buffering = true;
+
+        } else {
+            ogs_error("Not implemented = %d", far->apply_action);
+            ogs_pkbuf_free(sendbuf);
+        }
+    }
+
+    if (buffering == true) {
+
+        if (far->num_of_buffered_packet == 0) {
+            /* Only the first time a packet is buffered,
+             * it reports downlink notifications. */
+            report->type.downlink_data_report = 1;
+        }
+
+        if (far->num_of_buffered_packet < OGS_MAX_NUM_OF_PACKET_BUFFER) {
+            far->buffered_packet[far->num_of_buffered_packet++] = sendbuf;
+        } else {
+            ogs_pkbuf_free(sendbuf);
+        }
+    }
+
+    return true;
+}
+
 bool ogs_pfcp_up_handle_error_indication(
         ogs_pfcp_far_t *far, ogs_pfcp_user_plane_report_t *report)
 {

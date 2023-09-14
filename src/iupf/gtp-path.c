@@ -110,7 +110,7 @@ static void _gtpv1_tun_recv_common_cb(
     ogs_pfcp_far_t *far = NULL;
     ogs_pfcp_user_plane_report_t report;
     int i;
-    
+    ogs_info(" _gtpv1_tun_recv_common_cb | has_eth:[%d]",has_eth);
     //读取一个报文
     recvbuf = ogs_tun_read(fd, packet_pool);
     if (!recvbuf) {
@@ -262,7 +262,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
     ssize_t size;
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
-
+    ogs_info("_gtpv1_u_recv_cb");
     upf_sess_t *sess = NULL;
 
     ogs_pkbuf_t *pkbuf = NULL;
@@ -374,7 +374,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
     } else if (gtp_h->type == OGS_GTPU_MSGTYPE_ERR_IND) {
         ogs_pfcp_far_t *far = NULL;
-
+        ogs_info("I'm going to die");
         far = ogs_pfcp_far_find_by_gtpu_error_indication(pkbuf);
         if (far) {
             ogs_assert(true ==
@@ -533,7 +533,6 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
              *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
              */
             if (far->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
-                ogs_info("_gtpv1_u_recv_cb---!OGS_PFCP_INTERFACE_ACCESS!");
                 if (src_addr[0] == sess->ipv4->addr[0]) {
                     /* Source IP address should be matched in uplink */
                 } else if (check_framed_routes(sess, AF_INET, src_addr)) {
@@ -673,9 +672,41 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             }
 
             /* TODO: if destined to another UE, hairpin back out. */
-            if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
-                ogs_warn("ogs_tun_write() failed");
-
+            ogs_gtp_node_t *gnode1 = NULL;
+            ogs_ip_t ip1;
+            ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
+            ip1.len = OGS_IPV4_LEN;
+            ip1.ipv4 = 1;
+            ip1.ipv6 = 0;
+            int haha;
+            gnode1 = ogs_gtp_node_add_by_ip(&ogs_gtp_self()->gtpu_peer_list, &ip1, ogs_gtp_self()->gtpu_port);
+            if (!gnode1){
+                ogs_error("INC:ogs_gtp_node_add_by_ip() failed");
+            }
+            haha = ogs_gtp_connect(
+                    ogs_gtp_self()->gtpu_sock, ogs_gtp_self()->gtpu_sock6, gnode1);
+            if (haha != OGS_OK) {
+                ogs_error("INC:ogs_gtp_connect() failed");
+            }
+            ogs_pfcp_far_t far2;
+            far2.gnode = gnode1;
+            ogs_pfcp_far_t *far1 = &far2;
+            ogs_gtp2_header_t gtp_hdesc;
+            ogs_gtp2_extension_header_t ext_hdesc;
+            memset(&gtp_hdesc, 0, sizeof(gtp_hdesc));
+            memset(&ext_hdesc, 0, sizeof(ext_hdesc));
+            gtp_hdesc.type = 255;
+            gtp_hdesc.teid = far1->outer_header_creation.teid; 
+            if (pdr->qer && pdr->qer->qfi)
+                ext_hdesc.qos_flow_identifier = 1; //猜测
+            ogs_info("data prepared!");
+            ogs_pkbuf_t *sendbuf1 = NULL;
+            sendbuf1 = ogs_pkbuf_copy(pkbuf);
+            ogs_gtp2_send_user_plane(gnode1,&gtp_hdesc,&ext_hdesc,send);
+            
+            // if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
+            //     ogs_warn("ogs_tun_write() failed");
+            
         } else if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
             ogs_assert(true == ogs_pfcp_up_handle_pdr(
                         pdr, gtp_h->type, pkbuf, &report));

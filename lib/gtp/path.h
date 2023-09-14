@@ -75,6 +75,8 @@ int ogs_gtp_sendto(ogs_gtp_node_t *gnode, ogs_pkbuf_t *pkbuf);
 void ogs_gtp_send_error_message(
         ogs_gtp_xact_t *xact, uint32_t teid, uint8_t type, uint8_t cause_value);
 
+int ogs_gtp_sendto_test(ogs_pkbuf_t *pkbuf);
+
 #ifdef __cplusplus
 }
 #endif

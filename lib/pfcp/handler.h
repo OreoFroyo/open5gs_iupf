@@ -104,6 +104,9 @@ ogs_pfcp_urr_t *ogs_pfcp_handle_update_urr(ogs_pfcp_sess_t *sess,
 bool ogs_pfcp_handle_remove_urr(ogs_pfcp_sess_t *sess,
         ogs_pfcp_tlv_remove_urr_t *message,
         uint8_t *cause_value, uint8_t *offending_ie_value);
+bool ogs_pfcp_up_handle_pdr_test(
+        ogs_pfcp_pdr_t *pdr, uint8_t type, ogs_pkbuf_t *recvbuf,
+        ogs_pfcp_user_plane_report_t *report);
 
 #ifdef __cplusplus
 }
