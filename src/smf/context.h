@@ -178,8 +178,10 @@ typedef struct smf_bearer_s {
 
     ogs_pfcp_pdr_t  *dl_pdr;
     ogs_pfcp_pdr_t  *ul_pdr;
+    ogs_pfcp_pdr_t  *ul_pdr_toUpf;
     ogs_pfcp_far_t  *dl_far;
     ogs_pfcp_far_t  *ul_far;
+    ogs_pfcp_far_t  *ul_far_toUpf;
     ogs_pfcp_urr_t  *urr;
     ogs_pfcp_qer_t  *qer;
 
@@ -251,6 +253,10 @@ typedef struct smf_sess_s {
     uint32_t        upf_n3_teid;    /* UPF-N3 TEID */
     ogs_sockaddr_t  *upf_n3_addr;   /* UPF-N3 IPv4 */
     ogs_sockaddr_t  *upf_n3_addr6;  /* UPF-N3 IPv6 */
+
+    uint32_t        upf_n9_teid;    /* UPF-N9 TEID */
+    ogs_sockaddr_t  *upf_n9_addr;   /* UPF-N9 IPv4 */
+    ogs_sockaddr_t  *upf_n9_addr6;  /* UPF-N9 IPv6 */
 
     uint32_t        gnb_n3_teid;    /* gNB-N3 TEID */
     ogs_ip_t        gnb_n3_ip;      /* gNB-N3 IPv4/IPv6 */

@@ -228,6 +228,7 @@ typedef struct ogs_pfcp_far_s {
     ogs_pfcp_far_id_t       id;
     ogs_pfcp_apply_action_t apply_action;
     ogs_pfcp_interface_t    dst_if;
+    int dst_if_type = 6;   // 上行默认为N6接口
     ogs_pfcp_outer_header_creation_t outer_header_creation;
     int                     outer_header_creation_len;
 

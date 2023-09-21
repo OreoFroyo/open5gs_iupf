@@ -43,7 +43,7 @@ static void upf_n4_handle_create_urr(upf_sess_t *sess, ogs_pfcp_tlv_create_urr_t
     }
 }
 
-void upf_n4_handle_session_establishment_request(
+void puf_n4_handle_session_establishment_request(
         upf_sess_t *sess, ogs_pfcp_xact_t *xact,
         ogs_pfcp_session_establishment_request_t *req)
 {
@@ -131,7 +131,7 @@ void upf_n4_handle_session_establishment_request(
     if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
         goto cleanup;
 
-    /* Setup GTP Node */
+    /* Setup GTP Node */  //根据far信息生成gnode
     ogs_list_for_each(&sess->pfcp.far_list, far) {
         if (OGS_ERROR == ogs_pfcp_setup_far_gtpu_node(far)) {
             ogs_fatal("CHECK CONFIGURATION: upf.gtpu");

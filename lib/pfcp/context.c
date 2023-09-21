@@ -1025,7 +1025,7 @@ ogs_gtpu_resource_t *ogs_pfcp_find_gtpu_resource(ogs_list_t *list,
             source_interface != resource->info.source_interface) {
             match = false;
         }
-
+        
         if (match == true) return resource;
     }
 

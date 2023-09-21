@@ -279,6 +279,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     smf_bearer_t *qos_flow = NULL;
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
+    ogs_pfcp_pdr_t *ul_pdr_toUpf = NULL;
     ogs_pfcp_pdr_t *cp2up_pdr = NULL;
     ogs_pfcp_pdr_t *up2cp_pdr = NULL;
     ogs_pfcp_far_t *up2cp_far = NULL;
@@ -474,6 +475,8 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_assert(dl_pdr);
     ul_pdr = qos_flow->ul_pdr;
     ogs_assert(ul_pdr);
+    ul_pdr_toUpf = qos_flow->ul_pdr_toUpf;
+    ogs_assert(ul_pdr_toUpf);
     cp2up_pdr = sess->cp2up_pdr;
     ogs_assert(cp2up_pdr);
     up2cp_pdr = sess->up2cp_pdr;
@@ -492,6 +495,10 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_assert(OGS_OK ==
         ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
             &ul_pdr->ue_ip_addr, &ul_pdr->ue_ip_addr_len));
+
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
+            &ul_pdr_toUpf->ue_ip_addr, &ul_pdr_toUpf->ue_ip_addr_len));
 
     if (sess->session.ipv4_framed_routes &&
         sess->pfcp_node->up_function_features.frrt) {
@@ -515,6 +522,14 @@ bool smf_npcf_smpolicycontrol_handle_create(
                 ogs_assert(ul_pdr->ipv4_framed_routes);
             }
             ul_pdr->ipv4_framed_routes[i] = ogs_strdup(route);
+
+           if (!ul_pdr_toUpf->ipv4_framed_routes) {
+                ul_pdr_toUpf->ipv4_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(ul_pdr_toUpf->ipv4_framed_routes[0]));
+                ogs_assert(ul_pdr_toUpf->ipv4_framed_routes);
+            }
+            ul_pdr_toUpf->ipv4_framed_routes[i] = ogs_strdup(route);
         }
     }
 
@@ -540,6 +555,14 @@ bool smf_npcf_smpolicycontrol_handle_create(
                 ogs_assert(ul_pdr->ipv6_framed_routes);
             }
             ul_pdr->ipv6_framed_routes[i] = ogs_strdup(route);
+
+            if (!ul_pdr_toUpf->ipv6_framed_routes) {
+                ul_pdr_toUpf->ipv6_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(ul_pdr_toUpf->ipv6_framed_routes[0]));
+                ogs_assert(ul_pdr_toUpf->ipv6_framed_routes);
+            }
+            ul_pdr_toUpf->ipv6_framed_routes[i] = ogs_strdup(route);
         }
     }
 
@@ -582,6 +605,14 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
         ul_pdr->f_teid_len = 2;
 
+        ul_pdr_toUpf->f_teid.ipv4 = 1;
+        ul_pdr_toUpf->f_teid.ipv6 = 1;
+        ul_pdr_toUpf->f_teid.ch = 1;
+        ul_pdr_toUpf->f_teid.chid = 1;
+        ul_pdr_toUpf->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID; // ??
+        ul_pdr_toUpf->f_teid_len = 2;
+
+
         cp2up_pdr->f_teid.ipv4 = 1;
         cp2up_pdr->f_teid.ipv6 = 1;
         cp2up_pdr->f_teid.ch = 1;
@@ -622,6 +653,34 @@ bool smf_npcf_smpolicycontrol_handle_create(
             sess->upf_n3_teid = ul_pdr->teid;
         }
 
+        ogs_gtpu_resource_t *resource1 = NULL;
+        resource1 = ogs_pfcp_find_gtpu_resource(
+                &sess->pfcp_node->gtpu_resource_list,
+                sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
+        if (resource1) {
+            ogs_user_plane_ip_resource_info_to_sockaddr(&resource1->info,
+                &sess->upf_n9_addr, &sess->upf_n9_addr6);
+            if (resource1->info.teidri)
+                sess->upf_n9_teid = OGS_PFCP_GTPU_INDEX_TO_TEID(    //从用户面资源信息中生成对应的TEID
+                        ul_pdr_toUpf->teid, resource1->info.teidri,
+                        resource1->info.teid_range);
+            else
+                sess->upf_n9_teid = ul_pdr_toUpf->teid;
+        } else {
+            if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
+                ogs_assert(OGS_OK ==
+                    ogs_copyaddrinfo(
+                        &sess->upf_n9_addr, &sess->pfcp_node->addr));
+            else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
+                ogs_assert(OGS_OK ==
+                    ogs_copyaddrinfo(
+                        &sess->upf_n9_addr6, &sess->pfcp_node->addr));
+            else
+                ogs_assert_if_reached();
+
+            sess->upf_n9_teid = ul_pdr_toUpf->teid;
+        }
+
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n3_addr, sess->upf_n3_addr6,
@@ -632,14 +691,22 @@ bool smf_npcf_smpolicycontrol_handle_create(
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n3_addr, sess->upf_n3_addr6,
                 &cp2up_pdr->f_teid, &cp2up_pdr->f_teid_len));
-        cp2up_pdr->f_teid.teid = cp2up_pdr->teid;
+        cp2up_pdr->f_teid.teid = cp2up_pdr->teid;                    // ??
 
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n3_addr, sess->upf_n3_addr6,
                 &up2cp_pdr->f_teid, &up2cp_pdr->f_teid_len));
-        up2cp_pdr->f_teid.teid = sess->upf_n3_teid;
+        up2cp_pdr->f_teid.teid = sess->upf_n3_teid;                  // ??
+
+        ogs_assert(OGS_OK ==
+            ogs_pfcp_sockaddr_to_f_teid(
+                sess->upf_n9_addr, sess->upf_n9_addr6,
+                &ul_pdr_toUpf->f_teid, &ul_pdr_toUpf->f_teid_len));
+        ul_pdr_toUpf->f_teid.teid = sess->upf_n9_teid;
     }
+
+
 
     dl_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
     ul_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
