@@ -67,6 +67,8 @@ typedef struct ogs_pfcp_context_s {
     ogs_list_t      pfcp_peer_list; /* PFCP Node List */
     ogs_pfcp_node_t *pfcp_node;     /* Iterator for Peer round-robin */
 
+    ogs_pfcp_node_t *ipfcp_node;     /* Iterator for Peer round-robin */
+    
     ogs_list_t      ipfcp_peer_list; /* PFCP as I-UPF*/
 
 
@@ -77,6 +79,13 @@ typedef struct ogs_pfcp_context_s {
     ogs_hash_t      *far_f_teid_hash;  /* hash table for FAR(TEID+ADDR) */
     ogs_hash_t      *far_teid_hash; /* hash table for FAR(TEID) */
 } ogs_pfcp_context_t;
+
+#define OGS_SETUP_IPFCP_NODE(__cTX, __pNODE) \
+    do { \
+        ogs_assert((__cTX)); \
+        ogs_assert((__pNODE)); \
+        (__cTX)->ipfcp_node = __pNODE; \
+    } while(0)
 
 #define OGS_SETUP_PFCP_NODE(__cTX, __pNODE) \
     do { \

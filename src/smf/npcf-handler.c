@@ -443,10 +443,10 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_error("[%s:%d] No associated UPF", smf_ue->supi, sess->psi);
         return false;
     }
-//todo:改这里
+// 狂！ in 2023/09/21
     smf_sess_select_iupf(sess); 
-    ogs_assert(sess->pfcp_node);
-    if (!OGS_FSM_CHECK(&sess->pfcp_node->sm, smf_pfcp_state_associated)) {
+    ogs_assert(sess->ipfcp_node);
+    if (!OGS_FSM_CHECK(&sess->ipfcp_node->sm, smf_pfcp_state_associated)) {
         ogs_error("[%s:%d] No associated IUPF", smf_ue->supi, sess->psi);
         return false;
     }
@@ -711,12 +711,17 @@ bool smf_npcf_smpolicycontrol_handle_create(
     dl_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
     ul_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
 
+
     cp2up_pdr->precedence = OGS_PFCP_CP2UP_PDR_PRECEDENCE;
     up2cp_pdr->precedence = OGS_PFCP_UP2CP_PDR_PRECEDENCE;
 
+    // dl_pdr_toUpf->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
+    ul_pdr_toUpf->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
     ogs_assert(OGS_OK ==
             smf_5gc_pfcp_send_session_establishment_request(sess, 0));
-
+    ogs_assert(OGS_OK ==
+        smf_5gc_ipfcp_send_session_establishment_request(sess, 0));
+    
     return true;
 }
 

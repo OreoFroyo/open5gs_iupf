@@ -1239,7 +1239,8 @@ void smf_sess_select_iupf(smf_sess_t *sess)
     ogs_pfcp_self()->pfcp_node =
         selected_iupf_node(ogs_pfcp_self()->pfcp_node, sess);
     ogs_assert(ogs_pfcp_self()->pfcp_node);
-    OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
+    OGS_SETUP_IPFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
+    // OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node); // need test in 2023/09/21
     ogs_debug("UE using UPF on IP[%s]",
             OGS_ADDR(&ogs_pfcp_self()->pfcp_node->addr, buf));
 }
@@ -1271,7 +1272,7 @@ smf_sess_t *smf_sess_add_by_apn(smf_ue_t *smf_ue, char *apn, uint8_t rat_type)
     /* Set TEID & SEID */
     ogs_pool_alloc(&smf_n4_seid_pool, &sess->smf_n4_seid_node);
     ogs_assert(sess->smf_n4_seid_node);
-
+    ogs_info("seid_node:%d",*(sess->smf_n4_seid_node));
     sess->smf_n4_teid = *(sess->smf_n4_seid_node);
     sess->smf_n4_seid = *(sess->smf_n4_seid_node);
 
