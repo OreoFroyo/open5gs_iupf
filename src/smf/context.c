@@ -1484,12 +1484,12 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
     /* Set TEID & SEID */
     ogs_pool_alloc(&smf_n4_seid_pool, &sess->smf_n4_seid_node);
     ogs_assert(sess->smf_n4_seid_node);
-
+    ogs_info("psi,smf_ne_seid_node:%d",*(sess->smf_n4_seid_node));
     sess->smf_n4_teid = *(sess->smf_n4_seid_node);
     sess->smf_n4_seid = *(sess->smf_n4_seid_node);
 
     ogs_hash_set(self.smf_n4_seid_hash, &sess->smf_n4_seid,
-            sizeof(sess->smf_n4_seid), sess);
+            sizeof(sess->), sess);
 
     /* Set SmContextRef in 5GC */
     sess->sm_context_ref = ogs_msprintf("%d", sess->index);
