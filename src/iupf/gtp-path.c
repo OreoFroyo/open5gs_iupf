@@ -672,7 +672,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             }
 
             /* TODO: if destined to another UE, hairpin back out. */
-            if(far->dst_if_type == 9){
+            if(far->dst_if_type == 9){    //N9
                 ogs_gtp_node_t *gnode1 = NULL;
                 ogs_ip_t ip1;
                 ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
@@ -703,8 +703,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 ogs_info("data prepared!");
                 ogs_pkbuf_t *sendbuf1 = NULL;
                 sendbuf1 = ogs_pkbuf_copy(pkbuf);
-                ogs_gtp2_send_user_plane(gnode1,&gtp_hdesc,&ext_hdesc,send);
-            }else{
+                ogs_gtp2_send_user_plane(gnode1,&gtp_hdesc,&ext_hdesc,sendbuf1);
+            }else{   // N6 or MEC
                 if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
                  ogs_warn("ogs_tun_write() failed");
             }       
