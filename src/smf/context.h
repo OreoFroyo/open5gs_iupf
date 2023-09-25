@@ -486,6 +486,8 @@ void smf_sess_delete_cp_up_data_forwarding(smf_sess_t *sess);
 ogs_pcc_rule_t *smf_pcc_rule_find_by_id(smf_sess_t *sess, char *pcc_rule_id);
 
 smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess);
+smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess);
+smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess);
 smf_bearer_t *smf_qos_flow_find_by_qfi(smf_sess_t *sess, uint8_t qfi);
 smf_bearer_t *smf_qos_flow_find_by_pcc_rule_id(
         smf_sess_t *sess, char *pcc_rule_id);

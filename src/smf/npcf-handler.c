@@ -277,6 +277,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
 
     smf_ue_t *smf_ue = NULL;
     smf_bearer_t *qos_flow = NULL;
+    smf_bearer_t *qos_flow_toIupf = NULL;
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr_toUpf = NULL;
@@ -443,7 +444,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_error("[%s:%d] No associated UPF", smf_ue->supi, sess->psi);
         return false;
     }
-// 狂！ in 2023/09/21
+// 狂！ in 2023/09/21  太狂了 in 9/23
     smf_sess_select_iupf(sess); 
     ogs_assert(sess->ipfcp_node);
     if (!OGS_FSM_CHECK(&sess->ipfcp_node->sm, smf_pfcp_state_associated)) {
@@ -455,9 +456,12 @@ bool smf_npcf_smpolicycontrol_handle_create(
     smf_bearer_remove_all(sess);
 
     /* Setup Default QoS flow */
-    qos_flow = smf_qos_flow_add(sess);
+    qos_flow = smf_qos_flow_add_toUpf(sess);
+    qos_flow_toIupf = smf_qos_flow_add_toIupf(sess);
+    
     ogs_assert(qos_flow);
-
+    ogs_assert(qos_flow_toIupf);
+    
     /* Setup CP/UP Data Forwarding PDR/FAR */
     smf_sess_create_cp_up_data_forwarding(sess);
 
@@ -471,7 +475,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     qer->mbr.downlink = sess->session.ambr.downlink;
 
     /* Setup PDR */
-    dl_pdr = qos_flow->dl_pdr;
+    dl_pdr = qos_flow->dl_pdr; 
     ogs_assert(dl_pdr);
     ul_pdr = qos_flow->ul_pdr;
     ogs_assert(ul_pdr);
