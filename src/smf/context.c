@@ -2283,7 +2283,8 @@ smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess)
     ogs_assert(ul_far->apn);
 
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
-    ul_far->dst_if_type = 9;
+    ul_far->dst_if_type[0] = 9;
+    ul_far->dst_if_type[1] = 0;
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
 
     ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
