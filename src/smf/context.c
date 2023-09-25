@@ -2097,7 +2097,7 @@ smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
     ogs_list_init(&qos_flow->pf_list);
 
     /* PDR */
-    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp); //分配一个新的pdr对象
+    dl_pdr = ogs_pfcp_pdr_add(&sess->ipfcp); //分配一个新的pdr对象
     ogs_assert(dl_pdr);
     qos_flow->dl_pdr = dl_pdr;
 
@@ -2107,7 +2107,7 @@ smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
 
     dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE; 
 
-    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
+    ul_pdr = ogs_pfcp_pdr_add(&sess->ipfcp);
     ogs_assert(ul_pdr);
     qos_flow->ul_pdr = ul_pdr;
 
@@ -2133,7 +2133,7 @@ smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
         OGS_PFCP_PDU_SESSION_CONTAINER_TO_BE_DELETED;
 
     /* FAR */
-    dl_far = ogs_pfcp_far_add(&sess->pfcp);
+    dl_far = ogs_pfcp_far_add(&sess->ipfcp);
     ogs_assert(dl_far);
     qos_flow->dl_far = dl_far;
 
@@ -2146,9 +2146,9 @@ smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
 
     dl_far->apply_action =
         OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP; //dl默认动作为缓存和不计费
-    ogs_assert(sess->pfcp.bar);
+    ogs_assert(sess->ipfcp.bar);
 
-    ul_far = ogs_pfcp_far_add(&sess->pfcp);
+    ul_far = ogs_pfcp_far_add(&sess->ipfcp);
     ogs_assert(ul_far);
     qos_flow->ul_far = ul_far;
 
@@ -2163,7 +2163,7 @@ smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
     ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
     
     /* URR */
-    urr = ogs_pfcp_urr_add(&sess->pfcp);
+    urr = ogs_pfcp_urr_add(&sess->ipfcp);
     ogs_assert(urr);
     qos_flow->urr = urr;
 
@@ -2175,7 +2175,7 @@ smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
     ogs_pfcp_pdr_associate_urr(dl_pdr, urr);
 
     /* QER */
-    qer = ogs_pfcp_qer_add(&sess->pfcp);
+    qer = ogs_pfcp_qer_add(&sess->ipfcp);
     ogs_assert(qer);
     qos_flow->qer = qer;
 
@@ -2204,11 +2204,9 @@ smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess)
 
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
-    ogs_pfcp_pdr_t *ul_pdr_toUpf = NULL;
 
     ogs_pfcp_far_t *dl_far = NULL;
     ogs_pfcp_far_t *ul_far = NULL;
-    ogs_pfcp_far_t *ul_far_toUpf = NULL;
 
     ogs_pfcp_urr_t *urr = NULL;
     ogs_pfcp_qer_t *qer = NULL;
@@ -2239,19 +2237,11 @@ smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess)
     ogs_assert(ul_pdr);
     qos_flow->ul_pdr = ul_pdr;
 
-    ul_pdr_toUpf = ogs_pfcp_pdr_add(&sess->pfcp);
-    ogs_assert(ul_pdr_toUpf);
-    qos_flow->ul_pdr_toUpf = ul_pdr_toUpf;
-
     ogs_assert(sess->session.name);
     ul_pdr->apn = ogs_strdup(sess->session.name);
     ogs_assert(ul_pdr->apn);
 
-    ul_pdr_toUpf->apn = ogs_strdup(sess->session.name);
-    ogs_assert(ul_pdr_toUpf->apn);
-
     ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS; //设置PDR的源接口为接入网,表示针对上行流量
-    ul_pdr_toUpf->src_if = OGS_PFCP_INTERFACE_ACCESS;
 
     ul_pdr->outer_header_removal_len = 2; //设置外部头部删除描述,长度为2字节
     if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4) { //根据会话类型设置需要删除的外部头,如UDP/IPv4头
@@ -2266,21 +2256,6 @@ smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess)
     } else
         ogs_assert_if_reached();
     ul_pdr->outer_header_removal.gtpu_extheader_deletion =
-        OGS_PFCP_PDU_SESSION_CONTAINER_TO_BE_DELETED;
-
-    ul_pdr_toUpf->outer_header_removal_len = 2; //设置外部头部删除描述,长度为2字节
-    if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4) { //根据会话类型设置需要删除的外部头,如UDP/IPv4头
-        ul_pdr_toUpf->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
-    } else if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV6) {
-        ul_pdr_toUpf->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
-    } else if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4V6) {
-        ul_pdr_toUpf->outer_header_removal.description =
-            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
-    } else
-        ogs_assert_if_reached();
-    ul_pdr_toUpf->outer_header_removal.gtpu_extheader_deletion =
         OGS_PFCP_PDU_SESSION_CONTAINER_TO_BE_DELETED;
 
     /* FAR */
@@ -2303,27 +2278,15 @@ smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess)
     ogs_assert(ul_far);
     qos_flow->ul_far = ul_far;
 
-    ul_far_toUpf = ogs_pfcp_far_add(&sess->pfcp);
-    ogs_assert(ul_far_toUpf);
-    qos_flow->ul_far_toUpf = ul_far_toUpf;
-
     ogs_assert(sess->session.name);
     ul_far->apn = ogs_strdup(sess->session.name);
     ogs_assert(ul_far->apn);
 
-    ogs_assert(sess->session.name);
-    ul_far_toUpf->apn = ogs_strdup(sess->session.name);
-    ogs_assert(ul_far_toUpf->apn);
-
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
+    ul_far->dst_if_type = 9;
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
 
-    ul_far_toUpf->dst_if = OGS_PFCP_INTERFACE_CORE;
-    ul_far_toUpf->dst_if_type = 9;
-    ogs_pfcp_pdr_associate_far(ul_pdr_toUpf, ul_far_toUpf);
-
     ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
-    ul_far_toUpf->apply_action = OGS_PFCP_APPLY_ACTION_FORW;
     
     /* URR */
     urr = ogs_pfcp_urr_add(&sess->pfcp);
