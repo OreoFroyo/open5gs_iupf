@@ -239,6 +239,8 @@ typedef struct smf_sess_s {
     bool            epc;            /**< EPC or 5GC */
 
     ogs_pfcp_sess_t pfcp;           /* PFCP session context */
+    ogs_pfcp_sess_t ipfcp;           /* PFCP session context */
+
 
     uint64_t        smpolicycontrol_features; /* SBI features */
 

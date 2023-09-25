@@ -20,6 +20,166 @@
 #include "context.h"
 #include "n4-build.h"
 
+
+ogs_pkbuf_t *smf_n4_build_session_establishment_request_iupf(
+        uint8_t type, smf_sess_t *sess, ogs_pfcp_xact_t *xact)
+{
+    ogs_pfcp_message_t *pfcp_message = NULL;
+    ogs_pfcp_session_establishment_request_t *req = NULL;
+    ogs_pkbuf_t *pkbuf = NULL;
+
+    ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_pfcp_far_t *far = NULL;
+    ogs_pfcp_urr_t *urr = NULL;
+    ogs_pfcp_qer_t *qer = NULL;
+    int i, rv;
+
+    ogs_pfcp_node_id_t node_id;
+    ogs_pfcp_f_seid_t f_seid;
+    char apn_dnn[OGS_MAX_DNN_LEN+1];
+    int len;
+
+    smf_ue_t *smf_ue = NULL;
+    ogs_pfcp_user_id_t user_id;
+    char user_id_buf[sizeof(ogs_pfcp_user_id_t)];
+
+    ogs_debug("Session Establishment Request");
+    ogs_assert(sess);
+    smf_ue = sess->smf_ue;
+    ogs_assert(smf_ue);
+    ogs_assert(xact);
+
+    pfcp_message = ogs_calloc(1, sizeof(*pfcp_message));
+    if (!pfcp_message) {
+        ogs_error("ogs_calloc() failed");
+        return NULL;
+    }
+
+    req = &pfcp_message->pfcp_session_establishment_request;
+
+    /* Node ID */
+    rv = ogs_pfcp_sockaddr_to_node_id(&node_id, &len);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_pfcp_sockaddr_to_node_id() failed");
+        ogs_free(pfcp_message);
+        return NULL;
+    }
+    req->node_id.presence = 1;
+    req->node_id.data = &node_id;
+    req->node_id.len = len;
+
+    /* F-SEID */
+    rv = ogs_pfcp_sockaddr_to_f_seid(&f_seid, &len);
+    if (rv != OGS_OK) {
+        ogs_error("ogs_pfcp_sockaddr_to_f_seid() failed");
+        ogs_free(pfcp_message);
+        return NULL;
+    }
+    f_seid.seid = htobe64(sess->smf_n4_seid);
+    req->cp_f_seid.presence = 1;
+    req->cp_f_seid.data = &f_seid;
+    req->cp_f_seid.len = len;
+
+    ogs_pfcp_pdrbuf_init();
+
+    /* Create PDR */
+    i = 0;
+    ogs_list_for_each(&sess->ipfcp.pdr_list, pdr) {
+        ogs_pfcp_build_create_pdr(&req->create_pdr[i], i, pdr);
+        i++;
+    }
+
+    /* Create FAR */
+    i = 0;
+    ogs_list_for_each(&sess->ipfcp.far_list, far) {
+        ogs_pfcp_build_create_far(&req->create_far[i], i, far);
+        i++;
+    }
+
+    /* Create URR */
+    i = 0;
+    ogs_list_for_each(&sess->ipfcp.urr_list, urr) {
+        ogs_pfcp_build_create_urr(&req->create_urr[i], i, urr);
+        i++;
+    }
+
+    /* Create QER */
+    i = 0;
+    ogs_list_for_each(&sess->ipfcp.qer_list, qer) {
+        ogs_pfcp_build_create_qer(&req->create_qer[i], i, qer);
+        i++;
+    }
+
+    /* Create BAR */
+    if (sess->pfcp.bar) {
+        ogs_pfcp_build_create_bar(&req->create_bar, sess->pfcp.bar);
+    }
+
+    /* PDN Type */
+    req->pdn_type.presence = 1;
+    req->pdn_type.u8 = sess->session.session_type;
+
+    /* User ID */
+    memset(&user_id, 0, sizeof(ogs_pfcp_user_id_t));
+    if (smf_ue->imsi_len) {
+        user_id.imsif = 1;
+        user_id.imsi_len = smf_ue->imsi_len;
+        ogs_assert(smf_ue->imsi_len <= OGS_MAX_IMSI_LEN);
+        memcpy(user_id.imsi, smf_ue->imsi, smf_ue->imsi_len);
+    }
+    if (smf_ue->imeisv_len) {
+        user_id.imeif = 1;
+        user_id.imeisv_len = smf_ue->imeisv_len;
+        ogs_assert(smf_ue->imeisv_len <= OGS_MAX_IMEISV_LEN);
+        memcpy(user_id.imeisv, smf_ue->imeisv, smf_ue->imeisv_len);
+    }
+    if (smf_ue->msisdn_len) {
+        user_id.msisdnf = 1;
+        user_id.msisdn_len = smf_ue->msisdn_len;
+        ogs_assert(smf_ue->msisdn_len <= OGS_MAX_MSISDN_LEN);
+        memcpy(user_id.msisdn, smf_ue->msisdn, smf_ue->msisdn_len);
+    }
+
+    if (user_id.flags) {
+        ogs_pfcp_build_user_id(
+            &req->user_id, &user_id, user_id_buf, sizeof(user_id_buf));
+        req->user_id.presence = 1;
+    }
+
+    /* APN/DNN */
+    len = ogs_fqdn_build(apn_dnn, sess->session.name, strlen(sess->session.name));
+    req->apn_dnn.presence = 1;
+    req->apn_dnn.len = len;
+    req->apn_dnn.data = apn_dnn;
+
+    /* S-NSSAI */
+    if (!sess->epc) {
+        req->s_nssai.presence = 1;
+        req->s_nssai.len = 4;
+        req->s_nssai.data = &sess->s_nssai;
+    }
+
+    /* Restoration Indication */
+    if (xact->create_flags & OGS_PFCP_CREATE_RESTORATION_INDICATION) {
+        ogs_pfcp_sereq_flags_t sereq_flags;
+        sereq_flags.value = 0;
+
+        sereq_flags.restoration_indication = 1;
+        req->pfcpsereq_flags.presence = 1;
+        req->pfcpsereq_flags.u8 = sereq_flags.value;
+    }
+
+    pfcp_message->h.type = type;
+    pkbuf = ogs_pfcp_build_msg(pfcp_message);
+    ogs_expect(pkbuf);
+
+    ogs_pfcp_pdrbuf_clear();
+    ogs_free(pfcp_message);
+
+    return pkbuf;
+}
+
+
 ogs_pkbuf_t *smf_n4_build_session_establishment_request(
         uint8_t type, smf_sess_t *sess, ogs_pfcp_xact_t *xact)
 {
