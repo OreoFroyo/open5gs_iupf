@@ -237,6 +237,7 @@ typedef struct smf_sess_s {
     bool            epc;            /**< EPC or 5GC */
 
     ogs_pfcp_sess_t pfcp;           /* PFCP session context */
+    ogs_pfcp_sess_t ipfcp;           /* PFCP session context */
 
     uint64_t        smpolicycontrol_features; /* SBI features */
 
@@ -420,7 +421,7 @@ typedef struct smf_sess_s {
 
     ogs_gtp_node_t  *gnode;
     ogs_pfcp_node_t *pfcp_node;
-    ogs_pfcp_node_t *pfcp_node_i;
+    ogs_pfcp_node_t *ipfcp_node;
 
     smf_ue_t *smf_ue;
 
