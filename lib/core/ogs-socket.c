@@ -223,7 +223,7 @@ ssize_t ogs_sendto(ogs_socket_t fd,
 
     addrlen = ogs_sockaddr_len(to);
     ogs_assert(addrlen);
-    ogs_info("fd:[%u]|to->sa.sa_family:[%hu]|to->sa.sa_data:[%s]",fd,to->sa.sa_family,to->sa.sa_data);
+    ogs_info("fd:[%u]|to->sa.sa_family:[%hu]|to->sa.sa_data:[%d]",fd,to->sa.sa_family,to->sa.sa_data);
     return sendto(fd, buf, len, flags, &to->sa, addrlen);
 }
 

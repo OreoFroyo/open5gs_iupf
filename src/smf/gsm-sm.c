@@ -1067,6 +1067,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
 
         switch (nas_message->gsm.h.message_type) {
         case OGS_NAS_5GS_PDU_SESSION_MODIFICATION_REQUEST:
+            ogs_info("gsm_handle_pdu_session_modification_request---ipfw.ip.src.addr modify");
             rv = gsm_handle_pdu_session_modification_request(sess, stream,
                     &nas_message->gsm.pdu_session_modification_request);
             if (rv != OGS_OK) {

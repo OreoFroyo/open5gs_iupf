@@ -280,6 +280,8 @@ bool smf_npcf_smpolicycontrol_handle_create(
     smf_bearer_t *qos_flow_toUpf = NULL;
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
+    ogs_pfcp_far_t *ul_far = NULL;
+    ogs_pfcp_far_t *dl_far = NULL;
     ogs_pfcp_pdr_t *dl_pdr_upf = NULL;
     ogs_pfcp_pdr_t *ul_pdr_upf = NULL;
     ogs_pfcp_pdr_t *cp2up_pdr = NULL;
@@ -479,6 +481,8 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_assert(dl_pdr);
     ul_pdr = qos_flow->ul_pdr;
     ogs_assert(ul_pdr);
+    ul_far = qos_flow->ul_far;
+    dl_far = qos_flow->dl_far;
 
     dl_pdr_upf = qos_flow_toUpf->dl_far;
     ogs_assert(dl_pdr_upf);
@@ -503,8 +507,9 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_assert(OGS_OK ==
         ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
             &ul_pdr->ue_ip_addr, &ul_pdr->ue_ip_addr_len));
-
-    // 需要添加：UPF DL PDR 绑定I-UPF地址
+    
+    /*  需要添加：UPF DL PDR 绑定I-UPF地址 
+                 I-UPF UL PDR 绑定UPF地址  */ 
 
     if (sess->session.ipv4_framed_routes &&
         sess->pfcp_node->up_function_features.frrt) {
@@ -602,7 +607,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &up2cp_far->outer_header_creation,
             &up2cp_far->outer_header_creation_len));
     up2cp_far->outer_header_creation.teid = sess->index;
-
+   
     /* Set UPF-N3 TEID & ADDR to the Default UL PDR */
     ogs_assert(sess->pfcp_node);
     if (sess->pfcp_node->up_function_features.ftup) {
@@ -702,6 +707,21 @@ bool smf_npcf_smpolicycontrol_handle_create(
             sess->upf_n9_teid = ul_pdr_upf->teid;
         }
 
+        ogs_ip_t ip1;
+        ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
+        ip1.len = OGS_IPV4_LEN;
+        ip1.ipv4 = 1;
+        ip1.ipv6 = 0;
+        ogs_ip_t *upf_ip = ip1;
+        int rv2;
+        rv2 = ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,upf_ip);
+        ogs_assert(OGS_OK ==
+        ogs_pfcp_ip_to_outer_header_creation(
+            &upf_ip,
+            &ul_far->outer_header_creation,
+            &ul_far->outer_header_creation_len));
+        ul_far->outer_header_creation.teid = sess->upf_n9_teid;
+
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n3_addr, sess->upf_n3_addr6,
@@ -727,8 +747,6 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_pdr_upf->f_teid.teid = sess->upf_n9_teid;
         dl_pdr->f_teid.teid = sess->upf_n9_teid;
     }
-
-
 
     dl_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
     ul_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
