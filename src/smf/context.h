@@ -183,6 +183,13 @@ typedef struct smf_bearer_s {
     ogs_pfcp_urr_t  *urr;
     ogs_pfcp_qer_t  *qer;
 
+    ogs_pfcp_pdr_t  *dl_pdr_upf;
+    ogs_pfcp_pdr_t  *ul_pdr_upf;
+    ogs_pfcp_far_t  *dl_far_upf;
+    ogs_pfcp_far_t  *ul_far_upf;
+    ogs_pfcp_urr_t  *urr_upf;
+    ogs_pfcp_qer_t  *qer_upf;
+
 #define SMF_IS_QOF_FLOW(__bEARER) ((__bEARER)->qfi_node)
     uint8_t         *qfi_node;      /* Pool-Node for 5GC-QFI */
     uint8_t         qfi;            /* 5G Core QFI */
@@ -485,8 +492,7 @@ void smf_sess_delete_cp_up_data_forwarding(smf_sess_t *sess);
 ogs_pcc_rule_t *smf_pcc_rule_find_by_id(smf_sess_t *sess, char *pcc_rule_id);
 
 smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess);
-smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess);
-smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess);
+smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess);
 smf_bearer_t *smf_qos_flow_find_by_qfi(smf_sess_t *sess, uint8_t qfi);
 smf_bearer_t *smf_qos_flow_find_by_pcc_rule_id(
         smf_sess_t *sess, char *pcc_rule_id);

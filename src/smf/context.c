@@ -2072,7 +2072,7 @@ smf_bearer_t *smf_qos_flow_add(smf_sess_t *sess)
     return qos_flow;
 }
 
-smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
+smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
 {
     smf_bearer_t *qos_flow = NULL;
 
@@ -2182,138 +2182,107 @@ smf_bearer_t *smf_qos_flow_add_toIupf(smf_sess_t *sess)
     ogs_pfcp_pdr_associate_qer(dl_pdr, qer);
     ogs_pfcp_pdr_associate_qer(ul_pdr, qer);
 
-    /* Allocate QFI */
-    ogs_pool_alloc(&sess->qfi_pool, &qos_flow->qfi_node);
-    ogs_assert(qos_flow->qfi_node);
+    ogs_pfcp_pdr_t *dl_pdr_upf = NULL;
+    ogs_pfcp_pdr_t *ul_pdr_upf = NULL;
 
-    qos_flow->qfi = ul_pdr->qfi = qer->qfi = *(qos_flow->qfi_node);
+    ogs_pfcp_far_t *dl_far_upf = NULL;
+    ogs_pfcp_far_t *ul_far_upf = NULL;
 
-    qos_flow->sess = sess;
-
-    ogs_list_add(&sess->bearer_list, qos_flow);
-    smf_metrics_inst_by_5qi_add(&sess->plmn_id, &sess->s_nssai,
-            sess->session.qos.index, SMF_METR_GAUGE_SM_QOSFLOWNBR, 1);
-    smf_metrics_inst_global_inc(SMF_METR_GLOB_GAUGE_BEARERS_ACTIVE);
-
-    return qos_flow;
-}
-
-smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess)
-{
-    smf_bearer_t *qos_flow = NULL;
-
-    ogs_pfcp_pdr_t *dl_pdr = NULL;
-    ogs_pfcp_pdr_t *ul_pdr = NULL;
-
-    ogs_pfcp_far_t *dl_far = NULL;
-    ogs_pfcp_far_t *ul_far = NULL;
-
-    ogs_pfcp_urr_t *urr = NULL;
-    ogs_pfcp_qer_t *qer = NULL;
-
+    ogs_pfcp_urr_t *urr_upf = NULL;
+    ogs_pfcp_qer_t *qer_upf = NULL;
     
-    ogs_assert(sess);
-
-    ogs_pool_alloc(&smf_bearer_pool, &qos_flow);
-    ogs_assert(qos_flow);
-    memset(qos_flow, 0, sizeof *qos_flow);
-
-    smf_pf_identifier_pool_init(qos_flow);
-
-    ogs_list_init(&qos_flow->pf_list);
-
     /* PDR */
-    dl_pdr = ogs_pfcp_pdr_add(&sess->pfcp); //分配一个新的pdr对象
-    ogs_assert(dl_pdr);
-    qos_flow->dl_pdr = dl_pdr;
+    dl_pdr_upf = ogs_pfcp_pdr_add(&sess->pfcp); //分配一个新的pdr对象
+    ogs_assert(dl_pdr_upf);
+    qos_flow->dl_pdr_upf = dl_pdr_upf;
 
     ogs_assert(sess->session.name);
-    dl_pdr->apn = ogs_strdup(sess->session.name);
-    ogs_assert(dl_pdr->apn);
+    dl_pdr_upf->apn = ogs_strdup(sess->session.name);
+    ogs_assert(dl_pdr_upf->apn);
 
-    dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE; 
+    dl_pdr_upf->src_if = OGS_PFCP_INTERFACE_CORE; 
 
-    ul_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
-    ogs_assert(ul_pdr);
-    qos_flow->ul_pdr = ul_pdr;
+    ul_pdr_upf = ogs_pfcp_pdr_add(&sess->pfcp);
+    ogs_assert(ul_pdr_upf);
+    qos_flow->ul_pdr_upf = ul_pdr_upf;
 
     ogs_assert(sess->session.name);
-    ul_pdr->apn = ogs_strdup(sess->session.name);
-    ogs_assert(ul_pdr->apn);
+    ul_pdr_upf->apn = ogs_strdup(sess->session.name);
+    ogs_assert(ul_pdr_upf->apn);
 
-    ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS; //设置PDR的源接口为接入网,表示针对上行流量
+    ul_pdr_upf->src_if = OGS_PFCP_INTERFACE_ACCESS; //设置PDR的源接口为接入网,表示针对上行流量
 
-    ul_pdr->outer_header_removal_len = 2; //设置外部头部删除描述,长度为2字节
+    ul_pdr_upf->outer_header_removal_len = 2; //设置外部头部删除描述,长度为2字节
     if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4) { //根据会话类型设置需要删除的外部头,如UDP/IPv4头
-        ul_pdr->outer_header_removal.description =
+        ul_pdr_upf->outer_header_removal.description =
             OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
     } else if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV6) {
-        ul_pdr->outer_header_removal.description =
+        ul_pdr_upf->outer_header_removal.description =
             OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
     } else if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4V6) {
-        ul_pdr->outer_header_removal.description =
+        ul_pdr_upf->outer_header_removal.description =
             OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
     } else
         ogs_assert_if_reached();
-    ul_pdr->outer_header_removal.gtpu_extheader_deletion =
+    ul_pdr_upf->outer_header_removal.gtpu_extheader_deletion =
         OGS_PFCP_PDU_SESSION_CONTAINER_TO_BE_DELETED;
 
     /* FAR */
-    dl_far = ogs_pfcp_far_add(&sess->pfcp);
-    ogs_assert(dl_far);
-    qos_flow->dl_far = dl_far;
+    dl_far_upf = ogs_pfcp_far_add(&sess->pfcp);
+    ogs_assert(dl_far_upf);
+    qos_flow->dl_far = dl_far_upf;
 
     ogs_assert(sess->session.name);
-    dl_far->apn = ogs_strdup(sess->session.name);
-    ogs_assert(dl_far->apn);
+    dl_far_upf->apn = ogs_strdup(sess->session.name);
+    ogs_assert(dl_far_upf->apn);
 
-    dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
-    ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
+    dl_far_upf->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+    ogs_pfcp_pdr_associate_far(dl_pdr_upf, dl_far_upf);
 
-    dl_far->apply_action =
+    dl_far_upf->apply_action =
         OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP; //dl默认动作为缓存和不计费
     ogs_assert(sess->pfcp.bar);
 
-    ul_far = ogs_pfcp_far_add(&sess->pfcp);
-    ogs_assert(ul_far);
-    qos_flow->ul_far = ul_far;
+    ul_far_upf = ogs_pfcp_far_add(&sess->pfcp);
+    ogs_assert(ul_far_upf);
+    qos_flow->ul_far_upf = ul_far_upf;
 
     ogs_assert(sess->session.name);
-    ul_far->apn = ogs_strdup(sess->session.name);
-    ogs_assert(ul_far->apn);
+    ul_far_upf->apn = ogs_strdup(sess->session.name);
+    ogs_assert(ul_far_upf->apn);
 
-    ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
-    ul_far->dst_if_type[0] = 9;
-    ul_far->dst_if_type[1] = 0;
-    ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
+    ul_far_upf->dst_if = OGS_PFCP_INTERFACE_CORE;
+    ul_far_upf->dst_if_type[0] = 9;
+    ul_far_upf->dst_if_type[1] = 0;
+    ogs_pfcp_pdr_associate_far(ul_pdr_upf, ul_far_upf);
 
-    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
+    ul_far_upf->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
     
     /* URR */
-    urr = ogs_pfcp_urr_add(&sess->pfcp);
-    ogs_assert(urr);
-    qos_flow->urr = urr;
+    urr_upf = ogs_pfcp_urr_add(&sess->pfcp);
+    ogs_assert(urr_upf);
+    qos_flow->urr_upf = urr_upf;
 
-    urr->meas_method = OGS_PFCP_MEASUREMENT_METHOD_VOLUME;
-    urr->rep_triggers.volume_threshold = 1;
-    urr->vol_threshold.tovol = 1;
-    urr->vol_threshold.total_volume = 1024*1024*100;
+    urr_upf->meas_method = OGS_PFCP_MEASUREMENT_METHOD_VOLUME;
+    urr_upf->rep_triggers.volume_threshold = 1;
+    urr_upf->vol_threshold.tovol = 1;
+    urr_upf->vol_threshold.total_volume = 1024*1024*100;
 
-    ogs_pfcp_pdr_associate_urr(dl_pdr, urr);
+    ogs_pfcp_pdr_associate_urr(dl_pdr_upf, urr_upf);
 
     /* QER */
-    qer = ogs_pfcp_qer_add(&sess->pfcp);
-    ogs_assert(qer);
-    qos_flow->qer = qer;
+    qer_upf = ogs_pfcp_qer_add(&sess->pfcp);
+    ogs_assert(qer_upf);
+    qos_flow->qer_upf = qer_upf;
 
-    ogs_pfcp_pdr_associate_qer(dl_pdr, qer);
-    ogs_pfcp_pdr_associate_qer(ul_pdr, qer);
+    ogs_pfcp_pdr_associate_qer(dl_pdr_upf, qer_upf);
+    ogs_pfcp_pdr_associate_qer(ul_pdr_upf, qer_upf);
 
     /* Allocate QFI */
     ogs_pool_alloc(&sess->qfi_pool, &qos_flow->qfi_node);
     ogs_assert(qos_flow->qfi_node);
 
-    qos_flow->qfi = ul_pdr->qfi = qer->qfi = *(qos_flow->qfi_node);
+    qos_flow->qfi = ul_pdr->qfi = qer->qfi = ul_pdr_upf->qfi = qer_upf->qfi = *(qos_flow->qfi_node);
 
     qos_flow->sess = sess;
 
@@ -2324,6 +2293,7 @@ smf_bearer_t *smf_qos_flow_add_toUpf(smf_sess_t *sess)
 
     return qos_flow;
 }
+
 
 void smf_sess_create_indirect_data_forwarding(smf_sess_t *sess)
 {

@@ -277,7 +277,6 @@ bool smf_npcf_smpolicycontrol_handle_create(
 
     smf_ue_t *smf_ue = NULL;
     smf_bearer_t *qos_flow = NULL;
-    smf_bearer_t *qos_flow_toUpf = NULL;
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
     ogs_pfcp_far_t *ul_far = NULL;
@@ -459,11 +458,9 @@ bool smf_npcf_smpolicycontrol_handle_create(
     smf_bearer_remove_all(sess);
 
     /* Setup Default QoS flow */
-    qos_flow = smf_qos_flow_add_toIupf(sess);
-    qos_flow_toUpf = smf_qos_flow_add_toUpf(sess);
+    qos_flow = smf_qos_flow_add_toAllupf(sess);
     
     ogs_assert(qos_flow);
-    ogs_assert(qos_flow_toUpf);
     /* Setup CP/UP Data Forwarding PDR/FAR */
     smf_sess_create_cp_up_data_forwarding(sess);
 
@@ -484,9 +481,9 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ul_far = qos_flow->ul_far;
     dl_far = qos_flow->dl_far;
 
-    dl_pdr_upf = qos_flow_toUpf->dl_far;
+    dl_pdr_upf = qos_flow->dl_far_upf;
     ogs_assert(dl_pdr_upf);
-    ul_pdr_upf = qos_flow_toUpf->ul_pdr;
+    ul_pdr_upf = qos_flow->ul_pdr_upf;
     ogs_assert(ul_pdr_upf);
 
     cp2up_pdr = sess->cp2up_pdr;
