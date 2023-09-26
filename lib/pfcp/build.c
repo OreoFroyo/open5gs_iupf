@@ -549,7 +549,9 @@ void ogs_pfcp_build_create_far(
 
     message->apply_action.presence = 1;
     message->apply_action.u16 = far->apply_action;
-
+    message->forwarding_parameters.destination_interface_type.presence = 1;
+    message->forwarding_parameters.destination_interface_type.len = 2;
+    message->forwarding_parameters.destination_interface_type.data = far->dst_if_type;
     if (far->apply_action & OGS_PFCP_APPLY_ACTION_FORW) {
         message->forwarding_parameters.presence = 1;
         message->forwarding_parameters.destination_interface.presence = 1;
