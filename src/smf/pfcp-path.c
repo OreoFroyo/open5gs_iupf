@@ -522,7 +522,7 @@ int smf_5gc_ipfcp_send_session_establishment_request(
     h.seid = sess->upf_n4_seid; // todo:modify
 
 
-    n4buf = smf_n4_build_session_establishment_request(h.type, sess, xact);
+    n4buf = smf_n4_build_session_establishment_request_iupf(h.type, sess, xact);
     if (!n4buf) {
         ogs_error("smf_n4_build_session_establishment_request() failed");
         return OGS_ERROR;

@@ -264,6 +264,9 @@ typedef struct smf_sess_s {
     ogs_sockaddr_t  *upf_n9_addr;   /* UPF-N9 IPv4 */
     ogs_sockaddr_t  *upf_n9_addr6;  /* UPF-N9 IPv6 */
 
+    ogs_sockaddr_t  *iupf_n3_addr;   /* IUPF-N3 IPv4 */
+    ogs_sockaddr_t  *iupf_n3_addr6;  /* IUPF-N3 IPv6 */
+
     uint32_t        gnb_n3_teid;    /* gNB-N3 TEID */
     ogs_ip_t        gnb_n3_ip;      /* gNB-N3 IPv4/IPv6 */
 
