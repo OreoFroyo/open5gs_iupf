@@ -280,7 +280,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;
     ogs_pfcp_far_t *ul_far = NULL;
-    ogs_pfcp_far_t *dl_far = NULL;
+    //ogs_pfcp_far_t *dl_far = NULL;
     ogs_pfcp_pdr_t *dl_pdr_upf = NULL;
     ogs_pfcp_pdr_t *ul_pdr_upf = NULL;
     ogs_pfcp_pdr_t *cp2up_pdr = NULL;
@@ -479,9 +479,9 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ul_pdr = qos_flow->ul_pdr;
     ogs_assert(ul_pdr);
     ul_far = qos_flow->ul_far;
-    dl_far = qos_flow->dl_far;
-
-    dl_pdr_upf = qos_flow->dl_far_upf;
+    //dl_far = qos_flow->dl_far;
+    
+    dl_pdr_upf = qos_flow->dl_pdr_upf;
     ogs_assert(dl_pdr_upf);
     ul_pdr_upf = qos_flow->ul_pdr_upf;
     ogs_assert(ul_pdr_upf);
@@ -709,12 +709,10 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ip1.len = OGS_IPV4_LEN;
         ip1.ipv4 = 1;
         ip1.ipv6 = 0;
-        ogs_ip_t *upf_ip = ip1;
-        int rv2;
-        rv2 = ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,upf_ip);
+        ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
         ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
-            &upf_ip,
+            &ip1,
             &ul_far->outer_header_creation,
             &ul_far->outer_header_creation_len));
         ul_far->outer_header_creation.teid = sess->upf_n9_teid;
