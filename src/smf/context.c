@@ -1475,6 +1475,7 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
             OGS_SBI_NPCF_SMPOLICYCONTROL_DN_AUTHORIZATION);
 
     ogs_pfcp_pool_init(&sess->pfcp);
+    ogs_pfcp_pool_init(&sess->ipfcp);
     smf_qfi_pool_init(sess);
     smf_pf_precedence_pool_init(sess);
 
@@ -1497,7 +1498,7 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
 
     /* Create BAR in PFCP Session */
     ogs_pfcp_bar_new(&sess->pfcp);
-
+    ogs_pfcp_bar_new(&sess->ipfcp);
     /* Set PSI */
     sess->psi = psi;
 
