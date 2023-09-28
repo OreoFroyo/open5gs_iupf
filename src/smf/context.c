@@ -1241,7 +1241,7 @@ void smf_sess_select_iupf(smf_sess_t *sess)
     ogs_assert(ogs_pfcp_self()->pfcp_node);
     OGS_SETUP_IPFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
     // OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node); // need test in 2023/09/21
-    ogs_debug("UE using UPF on IP[%s]",
+    ogs_info("UE using IUPF on IP[%s]",
             OGS_ADDR(&ogs_pfcp_self()->pfcp_node->addr, buf));
 }
 

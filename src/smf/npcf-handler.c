@@ -704,11 +704,11 @@ bool smf_npcf_smpolicycontrol_handle_create(
             sess->upf_n9_teid = ul_pdr_upf->teid;
         }
         // iupf 的地址
-        if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
+        if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET)
             ogs_assert(OGS_OK ==
                 ogs_copyaddrinfo(
                     &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
-        else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
+        else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6)
             ogs_assert(OGS_OK ==
                 ogs_copyaddrinfo(
                     &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
