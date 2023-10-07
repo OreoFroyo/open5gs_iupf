@@ -609,7 +609,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_assert(OGS_OK ==
             ogs_copyaddrinfo(
                 &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
-        sess->iupf_n3_addr->sa.sa_family = AF_INET;
+        sess->iupf_n3_addr->ogs_sa_family = AF_INET;
     }
     else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6){
         ogs_assert(OGS_OK ==
@@ -621,7 +621,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_assert_if_reached();
     char buf[65];
     ogs_info("iupf_n3_addr [%s]",
-        OGS_ADDR(&sess->iupf_n3_addr, buf));
+        OGS_ADDR(sess->iupf_n3_addr, buf));
     /* Set UPF-N3 TEID & ADDR to the Default UL PDR */
     ogs_assert(sess->pfcp_node);
     ogs_gtpu_resource_t *resource1 = NULL;
@@ -665,28 +665,11 @@ bool smf_npcf_smpolicycontrol_handle_create(
 
     ogs_assert(OGS_OK ==
         ogs_pfcp_sockaddr_to_f_teid(
-            sess->upf_n3_addr, sess->upf_n3_addr6,
-            &ul_pdr->f_teid, &ul_pdr->f_teid_len));
-    ul_pdr->f_teid.teid = sess->upf_n3_teid;
-
-    ogs_assert(OGS_OK ==
-        ogs_pfcp_sockaddr_to_f_teid(
-            sess->upf_n3_addr, sess->upf_n3_addr6,
-            &cp2up_pdr->f_teid, &cp2up_pdr->f_teid_len));
-    cp2up_pdr->f_teid.teid = cp2up_pdr->teid;                    // ??
-
-    ogs_assert(OGS_OK ==
-        ogs_pfcp_sockaddr_to_f_teid(
-            sess->upf_n3_addr, sess->upf_n3_addr6,
-            &up2cp_pdr->f_teid, &up2cp_pdr->f_teid_len));
-    up2cp_pdr->f_teid.teid = sess->upf_n3_teid;                  // ??
-
-    ogs_assert(OGS_OK ==
-        ogs_pfcp_sockaddr_to_f_teid(
             sess->upf_n9_addr, sess->upf_n9_addr6,
             &ul_pdr_upf->f_teid, &ul_pdr_upf->f_teid_len));
     ul_pdr_upf->f_teid.teid = sess->upf_n9_teid;
     dl_pdr->f_teid.teid = sess->upf_n9_teid;
+    
     if (sess->pfcp_node->up_function_features.ftup) {
 
        /* TS 129 244 V16.5.0 8.2.3

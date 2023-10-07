@@ -2492,7 +2492,7 @@ void smf_sess_create_cp_up_data_forwarding(smf_sess_t *sess)
 
     smf_sess_delete_cp_up_data_forwarding(sess);
 
-    cp2up_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
+    cp2up_pdr = ogs_pfcp_pdr_add(&sess->ipfcp);
     ogs_assert(cp2up_pdr);
     sess->cp2up_pdr = cp2up_pdr;
 
@@ -2515,7 +2515,7 @@ void smf_sess_create_cp_up_data_forwarding(smf_sess_t *sess)
     } else
         ogs_assert_if_reached();
 
-    up2cp_pdr = ogs_pfcp_pdr_add(&sess->pfcp);
+    up2cp_pdr = ogs_pfcp_pdr_add(&sess->ipfcp);
     ogs_assert(up2cp_pdr);
     sess->up2cp_pdr = up2cp_pdr;
 
@@ -2548,7 +2548,7 @@ void smf_sess_create_cp_up_data_forwarding(smf_sess_t *sess)
     ogs_pfcp_pdr_associate_far(cp2up_pdr, cp2up_far);
     sess->cp2up_far = cp2up_far;
 
-    up2cp_far = ogs_pfcp_far_add(&sess->pfcp);
+    up2cp_far = ogs_pfcp_far_add(&sess->ipfcp);
     ogs_assert(up2cp_far);
     sess->up2cp_far = up2cp_far;
 

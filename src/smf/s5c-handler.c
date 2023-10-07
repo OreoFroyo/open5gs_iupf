@@ -1010,7 +1010,7 @@ bool smf_s5c_handle_delete_bearer_response(
     return false;
 }
 
-static int reconfigure_packet_filter(smf_pf_t *pf, ogs_gtp2_tft_t *tft, int i)
+static int(smf_pf_t *pf, ogs_gtp2_tft_t *tft, int i)
 {
     int j;
 
