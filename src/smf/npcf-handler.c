@@ -605,14 +605,18 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &up2cp_far->outer_header_creation_len));
     up2cp_far->outer_header_creation.teid = sess->index;
     ogs_info("prepare to give an iupf addr");
-    if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET)
+    if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET){
         ogs_assert(OGS_OK ==
             ogs_copyaddrinfo(
                 &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
-    else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6)
+        sess->iupf_n3_addr->sa.sa_family = AF_INET;
+    }
+    else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6){
         ogs_assert(OGS_OK ==
             ogs_copyaddrinfo(
                 &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
+        sess->iupf_n3_addr6->sa.sa_family = AF_INET6;
+    }
     else
         ogs_assert_if_reached();
     char buf[65];
