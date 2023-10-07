@@ -621,7 +621,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_assert_if_reached();
     char buf[65];
     ogs_info("iupf_n3_addr [%s]",
-        OGS_ADDR(&sess->iupf_n3_addr, buf));
+        OGS_ADDR(sess->iupf_n3_addr, buf));
     /* Set UPF-N3 TEID & ADDR to the Default UL PDR */
     ogs_assert(sess->pfcp_node);
     ogs_gtpu_resource_t *resource1 = NULL;
