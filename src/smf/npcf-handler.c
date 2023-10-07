@@ -604,7 +604,20 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &up2cp_far->outer_header_creation,
             &up2cp_far->outer_header_creation_len));
     up2cp_far->outer_header_creation.teid = sess->index;
-   
+    ogs_info("prepare to give an iupf addr");
+    if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET)
+        ogs_assert(OGS_OK ==
+            ogs_copyaddrinfo(
+                &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
+    else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6)
+        ogs_assert(OGS_OK ==
+            ogs_copyaddrinfo(
+                &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
+    else
+        ogs_assert_if_reached();
+    char buf[65];
+    ogs_info("iupf_n3_addr [%s]",
+        OGS_ADDR(&sess->iupf_n3_addr, buf));
     /* Set UPF-N3 TEID & ADDR to the Default UL PDR */
     ogs_assert(sess->pfcp_node);
     if (sess->pfcp_node->up_function_features.ftup) {
@@ -704,20 +717,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
             sess->upf_n9_teid = ul_pdr_upf->teid;
         }
         // iupf 的地址
-        ogs_info("prepare to give an iupf addr");
-        if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET)
-            ogs_assert(OGS_OK ==
-                ogs_copyaddrinfo(
-                    &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
-        else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6)
-            ogs_assert(OGS_OK ==
-                ogs_copyaddrinfo(
-                    &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
-        else
-            ogs_assert_if_reached();
-        char buf[65];
-        ogs_info("iupf_n3_addr [%s]",
-            OGS_ADDR(&sess->iupf_n3_addr, buf));
+
         ogs_ip_t ip1;
         ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
         ip1.len = OGS_IPV4_LEN;
