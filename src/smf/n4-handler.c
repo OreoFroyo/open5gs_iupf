@@ -193,7 +193,7 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
             break;
     }
 
-    ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
+    ogs_list_for_each(&sess->ipfcp.pdr_list, pdr) {
         far = pdr->far;
         ogs_assert(far);
 

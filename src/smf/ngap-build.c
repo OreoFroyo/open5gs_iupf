@@ -84,7 +84,7 @@ ogs_pkbuf_t *ngap_build_pdu_session_resource_setup_request_transfer(
     UPTransportLayerInformation->choice.gTPTunnel = gTPTunnel;
 
     ogs_assert(OGS_OK == ogs_sockaddr_to_ip(
-                sess->iupf_n3_addr, sess->iupf_n3_addr6, &upf_n3_ip)); //就改这里
+                sess->upf_n3_addr, sess->upf_n3_addr6, &upf_n3_ip)); //就改这里
     ogs_asn_ip_to_BIT_STRING(&upf_n3_ip, &gTPTunnel->transportLayerAddress);
     ogs_asn_uint32_to_OCTET_STRING(sess->upf_n3_teid, &gTPTunnel->gTP_TEID);
 
