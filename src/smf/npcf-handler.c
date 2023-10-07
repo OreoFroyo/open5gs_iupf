@@ -615,7 +615,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_assert(OGS_OK ==
             ogs_copyaddrinfo(
                 &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
-        sess->iupf_n3_addr6->sa.sa_family = AF_INET6;
+        sess->iupf_n3_addr6->ogs_sa_family = AF_INET6;
     }
     else
         ogs_assert_if_reached();
