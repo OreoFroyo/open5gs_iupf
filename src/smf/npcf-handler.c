@@ -624,6 +624,69 @@ bool smf_npcf_smpolicycontrol_handle_create(
         OGS_ADDR(&sess->iupf_n3_addr, buf));
     /* Set UPF-N3 TEID & ADDR to the Default UL PDR */
     ogs_assert(sess->pfcp_node);
+    ogs_gtpu_resource_t *resource1 = NULL;
+    resource1 = ogs_pfcp_find_gtpu_resource(
+            &sess->pfcp_node->gtpu_resource_list,
+            sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
+    if (resource1) {
+        ogs_user_plane_ip_resource_info_to_sockaddr(&resource1->info,
+            &sess->upf_n9_addr, &sess->upf_n9_addr6);
+        if (resource1->info.teidri)
+            sess->upf_n9_teid = OGS_PFCP_GTPU_INDEX_TO_TEID(    //从用户面资源信息中生成对应的TEID
+                    ul_pdr_upf->teid, resource1->info.teidri,
+                    resource1->info.teid_range);
+        else
+    sess->upf_n9_teid = ul_pdr_upf->teid;
+    } else {
+        if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
+            ogs_assert(OGS_OK ==
+                ogs_copyaddrinfo(
+                    &sess->upf_n9_addr, &sess->pfcp_node->addr));
+        else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
+            ogs_assert(OGS_OK ==
+                ogs_copyaddrinfo(
+                    &sess->upf_n9_addr6, &sess->pfcp_node->addr));
+        else
+            ogs_assert_if_reached();
+    sess->upf_n9_teid = ul_pdr_upf->teid;
+    }
+    ogs_ip_t ip1;
+    ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
+    ip1.len = OGS_IPV4_LEN;
+    ip1.ipv4 = 1;
+    ip1.ipv6 = 0;
+    ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
+    ogs_assert(OGS_OK ==
+    ogs_pfcp_ip_to_outer_header_creation(
+        &ip1,
+        &ul_far->outer_header_creation,
+        &ul_far->outer_header_creation_len));
+    ul_far->outer_header_creation.teid = sess->upf_n9_teid;
+
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_sockaddr_to_f_teid(
+            sess->upf_n3_addr, sess->upf_n3_addr6,
+            &ul_pdr->f_teid, &ul_pdr->f_teid_len));
+    ul_pdr->f_teid.teid = sess->upf_n3_teid;
+
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_sockaddr_to_f_teid(
+            sess->upf_n3_addr, sess->upf_n3_addr6,
+            &cp2up_pdr->f_teid, &cp2up_pdr->f_teid_len));
+    cp2up_pdr->f_teid.teid = cp2up_pdr->teid;                    // ??
+
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_sockaddr_to_f_teid(
+            sess->upf_n3_addr, sess->upf_n3_addr6,
+            &up2cp_pdr->f_teid, &up2cp_pdr->f_teid_len));
+    up2cp_pdr->f_teid.teid = sess->upf_n3_teid;                  // ??
+
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_sockaddr_to_f_teid(
+            sess->upf_n9_addr, sess->upf_n9_addr6,
+            &ul_pdr_upf->f_teid, &ul_pdr_upf->f_teid_len));
+    ul_pdr_upf->f_teid.teid = sess->upf_n9_teid;
+    dl_pdr->f_teid.teid = sess->upf_n9_teid;
     if (sess->pfcp_node->up_function_features.ftup) {
 
        /* TS 129 244 V16.5.0 8.2.3
@@ -693,33 +756,33 @@ bool smf_npcf_smpolicycontrol_handle_create(
             sess->upf_n3_teid = ul_pdr->teid;
         }
 
-        ogs_gtpu_resource_t *resource1 = NULL;
-        resource1 = ogs_pfcp_find_gtpu_resource(
-                &sess->pfcp_node->gtpu_resource_list,
-                sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
-        if (resource1) {
-            ogs_user_plane_ip_resource_info_to_sockaddr(&resource1->info,
-                &sess->upf_n9_addr, &sess->upf_n9_addr6);
-            if (resource1->info.teidri)
-                sess->upf_n9_teid = OGS_PFCP_GTPU_INDEX_TO_TEID(    //从用户面资源信息中生成对应的TEID
-                        ul_pdr_upf->teid, resource1->info.teidri,
-                        resource1->info.teid_range);
-            else
-                sess->upf_n9_teid = ul_pdr_upf->teid;
-        } else {
-            if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
-                ogs_assert(OGS_OK ==
-                    ogs_copyaddrinfo(
-                        &sess->upf_n9_addr, &sess->pfcp_node->addr));
-            else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
-                ogs_assert(OGS_OK ==
-                    ogs_copyaddrinfo(
-                        &sess->upf_n9_addr6, &sess->pfcp_node->addr));
-            else
-                ogs_assert_if_reached();
+        // ogs_gtpu_resource_t *resource1 = NULL;
+        // resource1 = ogs_pfcp_find_gtpu_resource(
+        //         &sess->pfcp_node->gtpu_resource_list,
+        //         sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
+        // if (resource1) {
+        //     ogs_user_plane_ip_resource_info_to_sockaddr(&resource1->info,
+        //         &sess->upf_n9_addr, &sess->upf_n9_addr6);
+        //     if (resource1->info.teidri)
+        //         sess->upf_n9_teid = OGS_PFCP_GTPU_INDEX_TO_TEID(    //从用户面资源信息中生成对应的TEID
+        //                 ul_pdr_upf->teid, resource1->info.teidri,
+        //                 resource1->info.teid_range);
+        //     else
+        //         sess->upf_n9_teid = ul_pdr_upf->teid;
+        // } else {
+        //     if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
+        //         ogs_assert(OGS_OK ==
+        //             ogs_copyaddrinfo(
+        //                 &sess->upf_n9_addr, &sess->pfcp_node->addr));
+        //     else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
+        //         ogs_assert(OGS_OK ==
+        //             ogs_copyaddrinfo(
+        //                 &sess->upf_n9_addr6, &sess->pfcp_node->addr));
+        //     else
+        //         ogs_assert_if_reached();
 
-            sess->upf_n9_teid = ul_pdr_upf->teid;
-        }
+        //     sess->upf_n9_teid = ul_pdr_upf->teid;
+        // }
         // iupf 的地址
 
         ogs_ip_t ip1;
