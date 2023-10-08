@@ -669,7 +669,6 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &ul_pdr_upf->f_teid, &ul_pdr_upf->f_teid_len));
     ul_pdr_upf->f_teid.teid = sess->upf_n9_teid;
     dl_pdr->f_teid.teid = sess->upf_n9_teid;
-    
     if (sess->pfcp_node->up_function_features.ftup) {
 
        /* TS 129 244 V16.5.0 8.2.3
@@ -710,7 +709,9 @@ bool smf_npcf_smpolicycontrol_handle_create(
         up2cp_pdr->f_teid.chid = 1;
         up2cp_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
         up2cp_pdr->f_teid_len = 2;
+
     } else {
+        ogs_info("!!! i'm crying ");
         ogs_gtpu_resource_t *resource = NULL;
         resource = ogs_pfcp_find_gtpu_resource(
                 &sess->pfcp_node->gtpu_resource_list,
@@ -815,6 +816,20 @@ bool smf_npcf_smpolicycontrol_handle_create(
 
     cp2up_pdr->precedence = OGS_PFCP_CP2UP_PDR_PRECEDENCE;
     up2cp_pdr->precedence = OGS_PFCP_UP2CP_PDR_PRECEDENCE;
+
+    if(ul_pdr->teid) ogs_info("ul_pdr teid:[%x]",ul_pdr->teid);
+    if(dl_pdr->teid) ogs_info("dl_pdr teid:[%x]",dl_pdr->teid);
+    if(dl_pdr_upf->teid) ogs_info("dl_pdr_upf teid:[%x]",dl_pdr_upf->teid);
+    if(ul_pdr_upf->teid) ogs_info("ul_pdr_upf teid:[%x]",ul_pdr_upf->teid);
+    if(cp2up_pdr->teid) ogs_info("cp2up_pdr teid:[%x]",cp2up_pdr->teid);
+    if(up2cp_pdr->teid) ogs_info("up2cp_pdr teid:[%x]",up2cp_pdr->teid);
+
+    if(ul_pdr->f_teid.teid) ogs_info("ul_pdr->f_teid.teid:[%x]",ul_pdr->f_teid.teid);
+    if(dl_pdr->f_teid.teid) ogs_info("dl_pdr->f_teid.teid:[%x]",dl_pdr->f_teid.teid);
+    if(dl_pdr_upf->f_teid.teid) ogs_info("dl_pdr_upf->f_teid.teid:[%x]",dl_pdr_upf->f_teid.teid);
+    if(ul_pdr_upf->f_teid.teid) ogs_info("ul_pdr_upf->f_teid.teid:[%x]",ul_pdr_upf->f_teid.teid);
+    if(cp2up_pdr->f_teid.teid) ogs_info("cp2up_pdr->f_teid.teid:[%x]",cp2up_pdr->f_teid.teid);
+    if(up2cp_pdr->f_teid.teid) ogs_info("up2cp_pdr->f_teid.teid:[%x]",up2cp_pdr->f_teid.teid);
 
     // dl_pdr_toUpf->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
     ogs_assert(OGS_OK ==

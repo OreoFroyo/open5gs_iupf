@@ -424,11 +424,6 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 #endif
 
         pfcp_object = ogs_pfcp_object_find_by_teid(teid);  //Tunnel End Point identifier
-
-        ogs_list_for_each(&pfcp_sess->pdr_list, pdr) {
-            ogs_info("teid:[%x]",pdr->f_teid.teid);
-        }
-
         if (!pfcp_object) {
             /*
              * TS23.527 Restoration procedures
