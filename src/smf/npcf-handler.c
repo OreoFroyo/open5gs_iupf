@@ -832,8 +832,8 @@ bool smf_npcf_smpolicycontrol_handle_create(
     if(up2cp_pdr->f_teid.teid) ogs_info("up2cp_pdr->f_teid.teid:[%x]",up2cp_pdr->f_teid.teid);
 
     // dl_pdr_toUpf->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
-    ogs_assert(OGS_OK ==
-            smf_5gc_pfcp_send_session_establishment_request(sess, 0));
+    // ogs_assert(OGS_OK ==
+    //         smf_5gc_pfcp_send_session_establishment_request(sess, 0));
     ogs_assert(OGS_OK ==
         smf_5gc_ipfcp_send_session_establishment_request(sess, 0));
     
