@@ -1281,6 +1281,7 @@ void ogs_pfcp_object_teid_hash_set(
                 &pdr->hash.teid.key, pdr->hash.teid.len, NULL);
 
     pdr->hash.teid.key = pdr->f_teid.teid;
+    ogs_info("pdr->hash.teid.key:[%x]",pdr->hash.teid.key);
     pdr->hash.teid.len = sizeof(pdr->hash.teid.key);
 
     switch(type) {
