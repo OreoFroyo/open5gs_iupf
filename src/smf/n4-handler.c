@@ -186,7 +186,7 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
 
     for (i = 0; i < OGS_MAX_NUM_OF_PDR; i++) {
         pdr = ogs_pfcp_handle_created_pdr(
-                &sess->pfcp, &rsp->created_pdr[i],
+                &sess->ipfcp, &rsp->created_pdr[i],
                 &cause_value, &offending_ie_value);
 
         if (!pdr)
