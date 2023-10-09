@@ -213,6 +213,7 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
                     ogs_pfcp_f_teid_to_sockaddr(
                         &pdr->f_teid, pdr->f_teid_len,
                         &sess->upf_n3_addr, &sess->upf_n3_addr6));
+                ogs_info("upf_n3_teid modify!!! [%x] to [%x]",sess->upf_n3_teid, pdr->f_teid.teid);
                 sess->upf_n3_teid = pdr->f_teid.teid;
             }
         } else if (pdr->src_if == OGS_PFCP_INTERFACE_CP_FUNCTION) {

@@ -184,11 +184,18 @@ void upf_n4_handle_session_establishment_request(
             if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
                 goto cleanup;
         }
-
+        if(pdr->teid) ogs_info("pdr->teid:[%x]",pdr->teid);
+        if(pdr->choose_id) ogs_info("pdr->choose_id:[%x]",pdr->choose_id);
+        if(pdr->f_teid.teid) ogs_info("pdr->f_teid.teid:[%x]",pdr->f_teid.teid);
+        if(pdr->f_teid.choose_id) ogs_info("pdr->f_teid.choose_id:[%x]",pdr->f_teid.choose_id);
         /* Setup UPF-N3-TEID & QFI Hash */
         if (pdr->f_teid_len)
             ogs_pfcp_object_teid_hash_set(
                     OGS_PFCP_OBJ_SESS_TYPE, pdr, restoration_indication);
+        if(pdr->teid) ogs_info("after:pdr->teid:[%x]",pdr->teid);
+        if(pdr->choose_id) ogs_info("after:pdr->choose_id:[%x]",pdr->choose_id);
+        if(pdr->f_teid.teid) ogs_info("after:pdr->f_teid.teid:[%x]",pdr->f_teid.teid);
+        if(pdr->f_teid.choose_id) ogs_info("after:pdr->f_teid.choose_id:[%x]",pdr->f_teid.choose_id);
     }
 
     /* Send Buffered Packet to gNB/SGW */

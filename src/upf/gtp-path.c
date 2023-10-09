@@ -422,7 +422,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         upf_metrics_inst_by_qfi_add(qfi,
                 UPF_METR_CTR_GTP_INDATAVOLUMEQOSLEVELN3UPF, pkbuf->len);
 #endif
-
+        ogs_info("search teid : [%x]",teid);
         pfcp_object = ogs_pfcp_object_find_by_teid(teid);
         if (!pfcp_object) {
             /*

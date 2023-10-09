@@ -86,6 +86,8 @@ ogs_pkbuf_t *ngap_build_pdu_session_resource_setup_request_transfer(
     ogs_assert(OGS_OK == ogs_sockaddr_to_ip(
                 sess->upf_n3_addr, sess->upf_n3_addr6, &upf_n3_ip));
     ogs_asn_ip_to_BIT_STRING(&upf_n3_ip, &gTPTunnel->transportLayerAddress);
+    ogs_info("sess->upf_n3_teid:[%x]",sess->upf_n3_teid);
+    ogs_info("upf_n3_teid:[%x]",upf_n3_ip.addr);
     ogs_asn_uint32_to_OCTET_STRING(sess->upf_n3_teid, &gTPTunnel->gTP_TEID);
 
     if (sess->handover.data_forwarding_not_possible == true) {

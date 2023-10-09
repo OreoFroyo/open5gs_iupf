@@ -640,6 +640,16 @@ bool smf_npcf_smpolicycontrol_handle_create(
     cp2up_pdr->precedence = OGS_PFCP_CP2UP_PDR_PRECEDENCE;
     up2cp_pdr->precedence = OGS_PFCP_UP2CP_PDR_PRECEDENCE;
 
+    if(ul_pdr->teid) ogs_info("ul_pdr teid:[%x]",ul_pdr->teid);
+    if(dl_pdr->teid) ogs_info("dl_pdr teid:[%x]",dl_pdr->teid);
+    if(cp2up_pdr->teid) ogs_info("cp2up_pdr teid:[%x]",cp2up_pdr->teid);
+    if(up2cp_pdr->teid) ogs_info("up2cp_pdr teid:[%x]",up2cp_pdr->teid);
+
+    if(ul_pdr->f_teid.teid) ogs_info("ul_pdr->f_teid.teid:[%x]",ul_pdr->f_teid.teid);
+    if(dl_pdr->f_teid.teid) ogs_info("dl_pdr->f_teid.teid:[%x]",dl_pdr->f_teid.teid);
+    if(cp2up_pdr->f_teid.teid) ogs_info("cp2up_pdr->f_teid.teid:[%x]",cp2up_pdr->f_teid.teid);
+    if(up2cp_pdr->f_teid.teid) ogs_info("up2cp_pdr->f_teid.teid:[%x]",up2cp_pdr->f_teid.teid);
+
     ogs_assert(OGS_OK ==
             smf_5gc_pfcp_send_session_establishment_request(sess, 0));
 
