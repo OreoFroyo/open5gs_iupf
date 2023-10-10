@@ -228,10 +228,10 @@ static void ipfcp_recv_cb(short when, ogs_socket_t fd, void *data)
             node->sock = data;
             pfcp_node_fsm_init(node, false);
         } else {
-            ogs_info("hh! an iupf is found!");
+            // ogs_info("hh! an iupf is found!");
         }
     } else {
-        ogs_info("hh! a upf is found!");
+        // ogs_info("hh! a upf is found!");
     }
     e->pfcp_node = node;
     e->pkbuf = pkbuf;
