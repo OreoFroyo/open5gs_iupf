@@ -770,7 +770,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         // iupf 的地址
 
         ogs_ip_t ip1;
-        ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
+        ip1.addr = 0x9FF7A8C0;//192168247159;//Little-Endian
         ip1.len = OGS_IPV4_LEN;
         ip1.ipv4 = 1;
         ip1.ipv6 = 0;
