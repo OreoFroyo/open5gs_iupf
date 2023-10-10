@@ -505,6 +505,15 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
             &ul_pdr->ue_ip_addr, &ul_pdr->ue_ip_addr_len));
     
+    /*这里加ueip是为了能够在upf侧建立ipv4*/
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
+            &dl_pdr_upf->ue_ip_addr, &dl_pdr_upf->ue_ip_addr_len));
+    dl_pdr_upf->ue_ip_addr.sd = OGS_PFCP_UE_IP_DST;
+
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
+            &ul_pdr_upf->ue_ip_addr, &ul_pdr_upf->ue_ip_addr_len));
     /*  需要添加：UPF DL PDR 绑定I-UPF地址 
                  I-UPF UL PDR 绑定UPF地址  */ 
 
