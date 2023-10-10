@@ -580,7 +580,9 @@ void smf_gsm_state_wait_5gc_sm_policy_association(ogs_fsm_t *s, smf_event_t *e)
                 } else if (smf_npcf_smpolicycontrol_handle_create(
                         sess, state, sbi_message) == true) {
                     OGS_FSM_TRAN(s,
-                        &smf_gsm_state_wait_pfcp_establishment);
+                    &smf_gsm_state_wait_ipfcp_establishment);
+                    // OGS_FSM_TRAN(s,
+                    //     &smf_gsm_state_wait_pfcp_establishment);
                 } else {
                     ogs_error(
                         "smf_npcf_smpolicycontrol_handle_create() failed");
@@ -606,6 +608,129 @@ void smf_gsm_state_wait_5gc_sm_policy_association(ogs_fsm_t *s, smf_event_t *e)
     default:
         ogs_error("No handler for event %s", smf_event_get_name(e));
         break;
+    }
+}
+
+
+void smf_gsm_state_wait_ipfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
+{
+    smf_sess_t *sess = NULL;
+    uint8_t pfcp_cause, gtp_cause;
+    smf_n1_n2_message_transfer_param_t param;
+
+    ogs_pfcp_xact_t *pfcp_xact = NULL;
+    ogs_pfcp_message_t *pfcp_message = NULL;
+    int rv;
+
+    ogs_assert(s);
+    ogs_assert(e);
+
+    smf_sm_debug(e);
+
+    sess = e->sess;
+    ogs_assert(sess);
+
+    switch (e->h.id) {
+    case OGS_FSM_ENTRY_SIG:
+        break;
+
+    case SMF_EVT_N4_MESSAGE:
+        pfcp_xact = e->pfcp_xact;
+        ogs_assert(pfcp_xact);
+        pfcp_message = e->pfcp_message;
+        ogs_assert(pfcp_message);
+
+        switch (pfcp_message->h.type) {
+        case OGS_PFCP_SESSION_ESTABLISHMENT_RESPONSE_TYPE:
+            if (pfcp_xact->epc) {
+                ogs_gtp_xact_t *gtp_xact = pfcp_xact->assoc_xact;
+                ogs_assert(gtp_xact);
+
+                pfcp_cause = smf_epc_n4_handle_session_establishment_response(
+                        sess, pfcp_xact,
+                        &pfcp_message->pfcp_session_establishment_response);
+                if (pfcp_cause != OGS_PFCP_CAUSE_REQUEST_ACCEPTED) {
+                    /* FIXME: tear down Gy and Gx */
+                    gtp_cause = gtp_cause_from_pfcp(
+                                    pfcp_cause, gtp_xact->gtp_version);
+                    send_gtp_create_err_msg(sess, e->gtp_xact, gtp_cause);
+                    return;
+                }
+
+                gtp_xact = pfcp_xact->assoc_xact;
+                if (gtp_xact) {
+                    switch (gtp_xact->gtp_version) {
+                    case 1:
+                        rv = smf_gtp1_send_create_pdp_context_response(
+                                sess, gtp_xact);
+                        break;
+                    case 2:
+                        rv = smf_gtp2_send_create_session_response(
+                                sess, gtp_xact);
+                        break;
+                    default:
+                        rv = OGS_ERROR;
+                        break;
+                    }
+                    /* If no CreatePDPCtxResp can be sent,
+                     * then tear down the session: */
+                    if (rv != OGS_OK) {
+                        OGS_FSM_TRAN(s, &smf_gsm_state_wait_pfcp_deletion);
+                        return;
+                    }
+                }
+
+                if (sess->gtp_rat_type == OGS_GTP2_RAT_TYPE_WLAN) {
+                    /*
+                     * TS23.214
+                     * 6.3.1.7 Procedures with modification of bearer
+                     * p50
+                     * 2.  ...
+                     * For "PGW/MME initiated bearer deactivation procedure",
+                     * PGW-C shall indicate PGW-U to stop counting and stop
+                     * forwarding downlink packets for the affected bearer(s).
+                     */
+                    ogs_assert(OGS_OK ==
+                        smf_epc_pfcp_send_deactivation(sess,
+                            OGS_GTP2_CAUSE_RAT_CHANGED_FROM_3GPP_TO_NON_3GPP));
+                }
+                smf_bearer_binding(sess);
+            } else {
+                pfcp_cause = smf_5gc_n4_handle_session_establishment_response_iupf(
+                        sess, pfcp_xact,
+                        &pfcp_message->pfcp_session_establishment_response);
+                if (pfcp_cause != OGS_PFCP_CAUSE_REQUEST_ACCEPTED) {
+                    OGS_FSM_TRAN(s, smf_gsm_state_5gc_n1_n2_reject);
+                    return;
+                }
+            }
+            ogs_assert(OGS_OK ==
+                smf_5gc_pfcp_send_session_establishment_request(sess, 0));
+            OGS_FSM_TRAN(s, &smf_gsm_state_wait_pfcp_establishment);
+            break;
+
+        default:
+            ogs_error("cannot handle PFCP message type[%d]",
+                    pfcp_message->h.type);
+        }
+        break;
+
+    case SMF_EVT_N4_TIMER:
+        switch (e->h.timer_id) {
+        case SMF_TIMER_PFCP_NO_ESTABLISHMENT_RESPONSE:
+            OGS_FSM_TRAN(s, smf_gsm_state_5gc_n1_n2_reject);
+            break;
+        default:
+            ogs_error("Unknown timer[%s:%d]",
+                    ogs_timer_get_name(e->h.timer_id), e->h.timer_id);
+        }
+        break;
+
+    case OGS_FSM_EXIT_SIG:
+        break;
+
+    default:
+        ogs_error("Unknown event [%s]", smf_event_get_name(e));
     }
 }
 
