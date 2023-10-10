@@ -519,7 +519,7 @@ int smf_5gc_ipfcp_send_session_establishment_request(
  *   over N4 towards another SMF or another PFCP entity in the SMF
  *   as specified in clause 5.22.2 and clause 5.22.3.
  */
-    h.seid = sess->upf_n4_seid; // todo:modify
+    h.seid = sess->upf_n4_seid; 
 
 
     n4buf = smf_n4_build_session_establishment_request_iupf(h.type, sess, xact);
