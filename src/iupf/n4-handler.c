@@ -88,6 +88,7 @@ void upf_n4_handle_session_establishment_request(
         if (created_pdr[i] == NULL)
             break;
     }
+
     num_of_created_pdr = i;
     if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
         goto cleanup;
@@ -191,6 +192,7 @@ void upf_n4_handle_session_establishment_request(
             if(pdr->choose_id) ogs_info("pdr->choose_id:[%x]",pdr->choose_id);
             if(pdr->f_teid.teid) ogs_info("pdr->f_teid.teid:[%x]",pdr->f_teid.teid);
             if(pdr->f_teid.choose_id) ogs_info("pdr->f_teid.choose_id:[%x]",pdr->f_teid.choose_id);
+            if(pdr->f_teid.teid) pdr->teid = pdr->f_teid.teid;
             ogs_pfcp_object_teid_hash_set(
                     OGS_PFCP_OBJ_SESS_TYPE, pdr, restoration_indication);
         }

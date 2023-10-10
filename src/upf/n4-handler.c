@@ -187,8 +187,12 @@ void upf_n4_handle_session_establishment_request(
 
         /* Setup UPF-N3-TEID & QFI Hash */
         if (pdr->f_teid_len)
+        {
+            if(pdr->f_teid.teid) pdr->teid = pdr->f_teid.teid;
             ogs_pfcp_object_teid_hash_set(
                     OGS_PFCP_OBJ_SESS_TYPE, pdr, restoration_indication);
+        }
+            
     }
 
     /* Send Buffered Packet to gNB/SGW */
