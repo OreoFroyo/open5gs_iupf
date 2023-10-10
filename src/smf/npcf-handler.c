@@ -662,7 +662,8 @@ bool smf_npcf_smpolicycontrol_handle_create(
         &ul_far->outer_header_creation,
         &ul_far->outer_header_creation_len));
     ul_far->outer_header_creation.teid = sess->upf_n9_teid;
-
+    ul_far->dst_if_type[0] = 9;
+    
     ogs_assert(OGS_OK ==
         ogs_pfcp_sockaddr_to_f_teid(
             sess->upf_n9_addr, sess->upf_n9_addr6,

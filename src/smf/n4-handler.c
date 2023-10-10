@@ -151,10 +151,11 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
     uint8_t cause_value = OGS_PFCP_CAUSE_REQUEST_ACCEPTED;
     uint8_t offending_ie_value = 0;
 
-    ogs_pfcp_f_seid_t *up_f_seid = NULL;
+    // ogs_pfcp_f_seid_t *up_f_seid = NULL;
 
     ogs_pfcp_pdr_t *pdr = NULL;
-    ogs_pfcp_far_t *far = NULL;
+    
+    // ogs_pfcp_far_t *far = NULL;
 
     ogs_assert(sess);
     ogs_assert(xact);
