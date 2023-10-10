@@ -650,7 +650,26 @@ bool smf_npcf_smpolicycontrol_handle_create(
     //         ogs_assert_if_reached();
     // sess->upf_n9_teid = ul_pdr_upf->teid;
     // }
-    
+    // ogs_ip_t ip1;
+    // ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
+    // ip1.len = OGS_IPV4_LEN;
+    // ip1.ipv4 = 1;
+    // ip1.ipv6 = 0;
+    // ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
+    // ogs_assert(OGS_OK ==
+    // ogs_pfcp_ip_to_outer_header_creation(
+    //     &ip1,
+    //     &ul_far->outer_header_creation,
+    //     &ul_far->outer_header_creation_len));
+    // ul_far->outer_header_creation.teid = sess->upf_n9_teid;
+
+
+    // ogs_assert(OGS_OK ==
+    //     ogs_pfcp_sockaddr_to_f_teid(
+    //         sess->upf_n9_addr, sess->upf_n9_addr6,
+    //         &ul_pdr_upf->f_teid, &ul_pdr_upf->f_teid_len));
+    // ul_pdr_upf->f_teid.teid = sess->upf_n9_teid;
+    // dl_pdr->f_teid.teid = sess->upf_n9_teid;
     if (sess->pfcp_node->up_function_features.ftup) {
 
        /* TS 129 244 V16.5.0 8.2.3
@@ -707,7 +726,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &ul_far->outer_header_creation,
             &ul_far->outer_header_creation_len));
         ul_far->outer_header_creation.teid = sess->upf_n9_teid;
-
+        ul_far->dst_if_type[0] = 9;
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n9_addr, sess->upf_n9_addr6,
@@ -774,7 +793,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         // iupf 的地址
 
         ogs_ip_t ip1;
-        ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
+        ip1.addr = 0x9FF7A8C0;//192168247159;//Little-Endian
         ip1.len = OGS_IPV4_LEN;
         ip1.ipv4 = 1;
         ip1.ipv6 = 0;

@@ -673,6 +673,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
             /* TODO: if destined to another UE, hairpin back out. */
             if(far->dst_if_type[0] == 9){    //N9
+                ogs_info("N9 ready to send packet");
                 ogs_pkbuf_t *recvbuf = ogs_pkbuf_copy(pkbuf);
                 ogs_assert(true == ogs_pfcp_up_handle_pdr(   //有发送
                 pdr, OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report));

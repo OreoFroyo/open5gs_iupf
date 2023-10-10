@@ -616,7 +616,6 @@ void smf_gsm_state_wait_ipfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
 {
     smf_sess_t *sess = NULL;
     uint8_t pfcp_cause, gtp_cause;
-    smf_n1_n2_message_transfer_param_t param;
 
     ogs_pfcp_xact_t *pfcp_xact = NULL;
     ogs_pfcp_message_t *pfcp_message = NULL;
