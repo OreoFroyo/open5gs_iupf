@@ -2231,13 +2231,15 @@ smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
     /* FAR */
     dl_far_upf = ogs_pfcp_far_add(&sess->pfcp);
     ogs_assert(dl_far_upf);
-    qos_flow->dl_far = dl_far_upf;
+    qos_flow->dl_far_upf = dl_far_upf;
 
     ogs_assert(sess->session.name);
     dl_far_upf->apn = ogs_strdup(sess->session.name);
     ogs_assert(dl_far_upf->apn);
 
     dl_far_upf->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+    dl_far_upf->dst_if_type[0] = 9;
+    dl_far_upf->dst_if_type[1] = 0;
     ogs_pfcp_pdr_associate_far(dl_pdr_upf, dl_far_upf);
 
     dl_far_upf->apply_action =
