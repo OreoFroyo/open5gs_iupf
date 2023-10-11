@@ -825,6 +825,10 @@ void smf_gsm_state_wait_pfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
                     OGS_FSM_TRAN(s, smf_gsm_state_5gc_n1_n2_reject);
                     return;
                 }
+                smf_bearer_t *qos_flow = NULL;
+                ogs_list_for_each(&sess->bearer_list, qos_flow) {
+                    qos_flow->dl_far = qos_flow->dl_far_upf;
+                }
                 memset(&param, 0, sizeof(param));
                 param.state = SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT;
                 param.n1smbuf =

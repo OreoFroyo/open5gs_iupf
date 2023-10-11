@@ -194,32 +194,32 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
             break;
     }
 
-    // ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
-    //     far = pdr->far;
-    //     ogs_assert(far);
+    ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
+        far = pdr->far;
+        ogs_assert(far);
 
-    //     if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS) {
-    //         if (far->dst_if == OGS_PFCP_INTERFACE_CP_FUNCTION)
-    //             ogs_pfcp_far_teid_hash_set(far);
+        if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS) {
+            if (far->dst_if == OGS_PFCP_INTERFACE_CP_FUNCTION)
+                ogs_pfcp_far_teid_hash_set(far);
 
-    //         ogs_assert(sess->pfcp_node);
-    //         // if (sess->pfcp_node->up_function_features.ftup &&
-    //         //     pdr->f_teid_len) {
-    //         //     if (sess->upf_n3_addr)
-    //         //         ogs_freeaddrinfo(sess->upf_n3_addr);
-    //         //     if (sess->upf_n3_addr6)
-    //         //         ogs_freeaddrinfo(sess->upf_n3_addr6);
+            ogs_assert(sess->pfcp_node);
+            // if (sess->pfcp_node->up_function_features.ftup &&
+            //     pdr->f_teid_len) {
+            //     if (sess->upf_n3_addr)
+            //         ogs_freeaddrinfo(sess->upf_n3_addr);
+            //     if (sess->upf_n3_addr6)
+            //         ogs_freeaddrinfo(sess->upf_n3_addr6);
 
-    //         //     ogs_assert(OGS_OK ==
-    //         //         ogs_pfcp_f_teid_to_sockaddr(
-    //         //             &pdr->f_teid, pdr->f_teid_len,
-    //         //             &sess->upf_n3_addr, &sess->upf_n3_addr6));
-    //         //     sess->upf_n3_teid = pdr->f_teid.teid;
-    //         // }
-    //     } else if (pdr->src_if == OGS_PFCP_INTERFACE_CP_FUNCTION) {
-    //         ogs_assert(OGS_ERROR != ogs_pfcp_setup_pdr_gtpu_node(pdr));
-    //     }
-    // }
+            //     ogs_assert(OGS_OK ==
+            //         ogs_pfcp_f_teid_to_sockaddr(
+            //             &pdr->f_teid, pdr->f_teid_len,
+            //             &sess->upf_n3_addr, &sess->upf_n3_addr6));
+            //     sess->upf_n3_teid = pdr->f_teid.teid;
+            // }
+        } else if (pdr->src_if == OGS_PFCP_INTERFACE_CP_FUNCTION) {
+            ogs_assert(OGS_ERROR != ogs_pfcp_setup_pdr_gtpu_node(pdr));
+        }
+    }
 
     if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED) {
         ogs_error("PFCP Cause [%d] : Not Accepted", cause_value);
