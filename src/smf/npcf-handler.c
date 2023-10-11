@@ -282,6 +282,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_pfcp_far_t *ul_far = NULL;
     //ogs_pfcp_far_t *dl_far = NULL;
     ogs_pfcp_pdr_t *dl_pdr_upf = NULL;
+    // ogs_pfcp_far_t *dl_far_upf = NULL;
     ogs_pfcp_pdr_t *ul_pdr_upf = NULL;
     ogs_pfcp_pdr_t *cp2up_pdr = NULL;
     ogs_pfcp_pdr_t *up2cp_pdr = NULL;
@@ -479,8 +480,9 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ul_pdr = qos_flow->ul_pdr;
     ogs_assert(ul_pdr);
     ul_far = qos_flow->ul_far;
-    //dl_far = qos_flow->dl_far;
-    
+    // dl_far_upf = qos_flow->dl_far_upf;
+    // ogs_assert(dl_far_upf);
+
     dl_pdr_upf = qos_flow->dl_pdr_upf;
     ogs_assert(dl_pdr_upf);
     ul_pdr_upf = qos_flow->ul_pdr_upf;
@@ -702,7 +704,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
         sess->upf_n3_teid = ul_pdr_upf->f_teid.teid;
         ul_pdr->f_teid_len = 2;
-
+        
         ul_pdr_upf->f_teid.ipv4 = 1;
         ul_pdr_upf->f_teid.ipv6 = 1;
         ul_pdr_upf->f_teid.ch = 1;
@@ -721,13 +723,11 @@ bool smf_npcf_smpolicycontrol_handle_create(
         up2cp_pdr->f_teid.ipv6 = 1;
         up2cp_pdr->f_teid.ch = 1;
         up2cp_pdr->f_teid.chid = 1;
+        up2cp_pdr->f_teid.teid = up2cp_pdr->teid;
         up2cp_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
         up2cp_pdr->f_teid_len = 2;
         ogs_ip_t ip1;
         // ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
-        // ip1.len = OGS_IPV4_LEN;
-        // ip1.ipv4 = 1;
-        // ip1.ipv6 = 0;
         ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
         ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
@@ -736,6 +736,17 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &ul_far->outer_header_creation_len));
         ul_far->outer_header_creation.teid = sess->upf_n9_teid;
         ul_far->dst_if_type[0] = 9;
+
+        // ogs_ip_t iupf_ip;
+        // ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
+
+        // ogs_assert(OGS_OK ==
+        // ogs_pfcp_ip_to_outer_header_creation(
+        //     &iupf_ip,
+        //     &dl_far_upf->outer_header_creation,
+        //     &dl_far_upf->outer_header_creation_len));
+        // dl_far_upf->outer_header_creation.teid = sess->upf_n9_teid;
+
         if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
             ogs_assert(OGS_OK ==
                 ogs_copyaddrinfo(
@@ -810,19 +821,6 @@ bool smf_npcf_smpolicycontrol_handle_create(
         //     sess->upf_n9_teid = ul_pdr_upf->teid;
         // }
         // iupf 的地址
-
-        ogs_ip_t ip1;
-        ip1.addr = 0x9FF7A8C0;//192168247159;//Little-Endian
-        ip1.len = OGS_IPV4_LEN;
-        ip1.ipv4 = 1;
-        ip1.ipv6 = 0;
-        ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
-        ogs_assert(OGS_OK ==
-        ogs_pfcp_ip_to_outer_header_creation(
-            &ip1,
-            &ul_far->outer_header_creation,
-            &ul_far->outer_header_creation_len));
-        ul_far->outer_header_creation.teid = sess->upf_n9_teid;
 
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
