@@ -403,7 +403,7 @@ void ogs_pfcp_build_create_pdr(
     if (pdr->f_teid_len) {
         memcpy(&pdrbuf[i].f_teid, &pdr->f_teid, pdr->f_teid_len);
         pdrbuf[i].f_teid.teid = htobe32(pdr->f_teid.teid);
-        ogs_info("pdr f_teid.teid:%x",pdrbuf[i].f_teid.teid);
+        ogs_info("pdr f_teid.teid:%x,%x",pdrbuf[i].f_teid.teid,pdr->f_teid.teid);
         message->pdi.local_f_teid.presence = 1;
         message->pdi.local_f_teid.data = &pdrbuf[i].f_teid;
         message->pdi.local_f_teid.len = pdr->f_teid_len;
