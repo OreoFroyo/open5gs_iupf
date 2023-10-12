@@ -1014,6 +1014,7 @@ ogs_pfcp_far_t *ogs_pfcp_handle_create_far(ogs_pfcp_sess_t *sess,
         }
         if (message->forwarding_parameters.destination_interface_type.presence) {
             far->dst_if_type[0] = (int)((char *)message->forwarding_parameters.destination_interface_type.data)[0];
+            ogs_info("lib/pfcp:far->id:[%d] far->dst_if_type[0]=[%d]",far->id,far->dst_if_type[0]);
             far->dst_if_type[1] = 0;
         }
         if (message->forwarding_parameters.network_instance.presence) {
