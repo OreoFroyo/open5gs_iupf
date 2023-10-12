@@ -144,10 +144,10 @@ int ngap_handle_pdu_session_resource_setup_response_transfer(
             }
         }
     }
-
     if (far_update) {
+        ogs_info("going to send ipfcp modifcation")
         ogs_assert(OGS_OK ==
-            smf_5gc_pfcp_send_all_pdr_modification_request(
+            smf_5gc_ipfcp_send_all_pdr_modification_request(
                 sess, stream, OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_ACTIVATE,
                 0));
     } else {
