@@ -2255,7 +2255,7 @@ smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
     ogs_assert(ul_far_upf->apn);
 
     ul_far_upf->dst_if = OGS_PFCP_INTERFACE_CORE;
-    ul_far_upf->dst_if_type[0] = 9;
+    ul_far_upf->dst_if_type[0] = 0;
     ul_far_upf->dst_if_type[1] = 0;
     ogs_pfcp_pdr_associate_far(ul_pdr_upf, ul_far_upf);
 

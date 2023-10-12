@@ -138,6 +138,7 @@ void upf_n4_handle_session_establishment_request(
             ogs_fatal("ogs_pfcp_setup_far_gtpu_node() failed");
             goto cleanup;
         }
+        ogs_info("n4-handler:far->id:[%d],far->dst_if=[%d],far->dst_if_type=[%d]",far->id,far->dst_if,far->dst_if_type[0]);
         if (far->gnode)
             ogs_pfcp_far_f_teid_hash_set(far);
     }

@@ -282,7 +282,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_pfcp_far_t *ul_far = NULL;
     //ogs_pfcp_far_t *dl_far = NULL;
     ogs_pfcp_pdr_t *dl_pdr_upf = NULL;
-    // ogs_pfcp_far_t *dl_far_upf = NULL;
+    ogs_pfcp_far_t *dl_far_upf = NULL;
     ogs_pfcp_pdr_t *ul_pdr_upf = NULL;
     ogs_pfcp_pdr_t *cp2up_pdr = NULL;
     ogs_pfcp_pdr_t *up2cp_pdr = NULL;
@@ -480,8 +480,8 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ul_pdr = qos_flow->ul_pdr;
     ogs_assert(ul_pdr);
     ul_far = qos_flow->ul_far;
-    // dl_far_upf = qos_flow->dl_far_upf;
-    // ogs_assert(dl_far_upf);
+    dl_far_upf = qos_flow->dl_far_upf;
+    ogs_assert(dl_far_upf);
 
     dl_pdr_upf = qos_flow->dl_pdr_upf;
     ogs_assert(dl_pdr_upf);
@@ -737,15 +737,15 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_far->outer_header_creation.teid = sess->upf_n9_teid;
         ul_far->dst_if_type[0] = 9;
 
-        // ogs_ip_t iupf_ip;
-        // ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
+        ogs_ip_t iupf_ip;
+        ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
 
-        // ogs_assert(OGS_OK ==
-        // ogs_pfcp_ip_to_outer_header_creation(
-        //     &iupf_ip,
-        //     &dl_far_upf->outer_header_creation,
-        //     &dl_far_upf->outer_header_creation_len));
-        // dl_far_upf->outer_header_creation.teid = sess->upf_n9_teid;
+        ogs_assert(OGS_OK ==
+        ogs_pfcp_ip_to_outer_header_creation(
+            &iupf_ip,
+            &dl_far_upf->outer_header_creation,
+            &dl_far_upf->outer_header_creation_len));
+        dl_far_upf->outer_header_creation.teid = sess->upf_n9_teid;
 
         if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
             ogs_assert(OGS_OK ==

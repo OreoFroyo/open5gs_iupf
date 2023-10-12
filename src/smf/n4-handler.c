@@ -155,7 +155,7 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
 
     ogs_pfcp_pdr_t *pdr = NULL;
     
-    // ogs_pfcp_far_t *far = NULL;
+    ogs_pfcp_far_t *far = NULL;
 
     ogs_assert(sess);
     ogs_assert(xact);
@@ -193,6 +193,7 @@ uint8_t smf_5gc_n4_handle_session_establishment_response(
         if (!pdr)
             break;
     }
+    
 
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;

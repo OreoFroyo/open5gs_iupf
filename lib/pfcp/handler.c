@@ -247,7 +247,7 @@ bool ogs_pfcp_up_handle_pdr(
     }
 
     buffering = false;
-
+    ogs_info("upf:far->id:[%d],far->dst_if=[%d]",far->id,far->dst_if);
     if (!far->gnode) {
         ogs_info("buffering is true!");
         buffering = true;
