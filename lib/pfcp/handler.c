@@ -697,7 +697,11 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
         ogs_assert(qer);
         ogs_pfcp_pdr_associate_qer(pdr, qer);
     }
-
+    ogs_info("pdr created");
+    if(pdr->teid) ogs_info("pdr->teid:[%x]",pdr->teid);
+    if(pdr->choose_id) ogs_info("pdr->choose_id:[%x]",pdr->choose_id);
+    if(pdr->f_teid.teid) ogs_info("pdr->f_teid.teid:[%x]",pdr->f_teid.teid);
+    if(pdr->f_teid.choose_id) ogs_info("pdr->f_teid.choose_id:[%x]",pdr->f_teid.choose_id);
     return pdr;
 }
 
