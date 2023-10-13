@@ -745,7 +745,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &iupf_ip,
             &dl_far_upf->outer_header_creation,
             &dl_far_upf->outer_header_creation_len));
-        dl_far_upf->outer_header_creation.teid = sess->upf_n9_teid;
+        dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
 
         if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
             ogs_assert(OGS_OK ==
