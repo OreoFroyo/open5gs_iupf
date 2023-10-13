@@ -702,7 +702,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_pdr->f_teid.chid = 1;
         ul_pdr->f_teid.teid = ul_pdr->teid;
         ul_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
-        sess->upf_n3_teid = ul_pdr_upf->f_teid.teid;
+        sess->upf_n3_teid = ul_pdr->f_teid.teid;
         ul_pdr->f_teid_len = 5;
         
         ul_pdr_upf->f_teid.ipv4 = 1;
