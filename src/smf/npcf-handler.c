@@ -703,7 +703,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_pdr->f_teid.teid = ul_pdr->teid;
         ul_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
         sess->upf_n3_teid = ul_pdr_upf->f_teid.teid;
-        ul_pdr->f_teid_len = 4;
+        ul_pdr->f_teid_len = 5;
         
         ul_pdr_upf->f_teid.ipv4 = 1;
         ul_pdr_upf->f_teid.ipv6 = 1;
@@ -712,7 +712,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_pdr_upf->f_teid.teid = ul_pdr_upf->teid;
         ul_pdr_upf->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
         sess->upf_n9_teid = ul_pdr_upf->f_teid.teid;
-        ul_pdr_upf->f_teid_len = 4;
+        ul_pdr_upf->f_teid_len = 5;
 
         cp2up_pdr->f_teid.ipv4 = 1;
         cp2up_pdr->f_teid.ipv6 = 1;
@@ -725,7 +725,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         up2cp_pdr->f_teid.chid = 1;
         up2cp_pdr->f_teid.teid = up2cp_pdr->teid;
         up2cp_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
-        up2cp_pdr->f_teid_len = 4;
+        up2cp_pdr->f_teid_len = 5;
         ogs_ip_t ip1;
         // ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
         ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
