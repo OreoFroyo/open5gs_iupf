@@ -584,7 +584,7 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
     if (message->pdi.local_f_teid.presence) {
         pdr->f_teid_len =
             ogs_min(message->pdi.local_f_teid.len, sizeof(pdr->f_teid));
-        ogs_info("f_teid len:%d = min(%d,%d)",pdr->f_teid_len,message->pdi.local_f_teid.len,sizeof(pdr->f_teid));
+        ogs_info("f_teid len:%d = min(%d,%lu)",pdr->f_teid_len,message->pdi.local_f_teid.len,sizeof(pdr->f_teid));
         memcpy(&pdr->f_teid, message->pdi.local_f_teid.data, pdr->f_teid_len);
         ogs_assert(pdr->f_teid.ipv4 || pdr->f_teid.ipv6);
         pdr->f_teid.teid = be32toh(pdr->f_teid.teid);
