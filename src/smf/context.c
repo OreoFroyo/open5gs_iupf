@@ -2133,6 +2133,7 @@ smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
     ul_pdr->outer_header_removal.gtpu_extheader_deletion =
         OGS_PFCP_PDU_SESSION_CONTAINER_TO_BE_DELETED;
 
+
     /* FAR */
     dl_far = ogs_pfcp_far_add(&sess->ipfcp);
     ogs_assert(dl_far);
@@ -2143,6 +2144,8 @@ smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
     ogs_assert(dl_far->apn);
 
     dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+    // dl_far->dst_if_type[0] = 9;
+    // dl_far->dst_if_type[1] = 1;
     ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
 
     dl_far->apply_action =
@@ -2159,6 +2162,9 @@ smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
 
 
     ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
+    // ul_far->dst_if_type[0] = 9;
+    // ul_far->dst_if_type[1] = 0;
+
     ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
 
     ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
@@ -2239,7 +2245,7 @@ smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
 
     dl_far_upf->dst_if = OGS_PFCP_INTERFACE_ACCESS;
     dl_far_upf->dst_if_type[0] = 9;
-    dl_far_upf->dst_if_type[1] = 7;
+    dl_far_upf->dst_if_type[1] = 1;
     ogs_pfcp_pdr_associate_far(dl_pdr_upf, dl_far_upf);
 
     dl_far_upf->apply_action =
@@ -2256,7 +2262,7 @@ smf_bearer_t *smf_qos_flow_add_toAllupf(smf_sess_t *sess)
 
     ul_far_upf->dst_if = OGS_PFCP_INTERFACE_CORE;
     ul_far_upf->dst_if_type[0] = 9;
-    ul_far_upf->dst_if_type[1] = 8;
+    ul_far_upf->dst_if_type[1] = 0;
     ogs_pfcp_pdr_associate_far(ul_pdr_upf, ul_far_upf);
 
     ul_far_upf->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发

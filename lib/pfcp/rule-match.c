@@ -198,7 +198,8 @@ ogs_pfcp_rule_t *ogs_pfcp_pdr_rule_find_by_packet(
             src_mask[k] = src_addr[k] & ipfw->ip.src.mask[k];
             dst_mask[k] = dst_addr[k] & ipfw->ip.dst.mask[k];
         }
-
+        ogs_info("ipfw->ip.src.addr:[%x]",ipfw->ip.src.addr);
+        ogs_info("ipfw->ip.dst.addr:[%x]",ipfw->ip.dst.addr);
         if (memcmp(src_mask, ipfw->ip.src.addr, addr_len) == 0 &&
             memcmp(dst_mask, ipfw->ip.dst.addr, addr_len) == 0) {
             /* Protocol match */

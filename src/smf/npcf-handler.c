@@ -430,7 +430,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
             }
         }
     }
-
+    
     /* Update authorized PCC rule & QoS */
     update_authorized_pcc_rule_and_qos(sess, SmPolicyDecision);
 

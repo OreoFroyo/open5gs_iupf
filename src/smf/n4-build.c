@@ -88,7 +88,6 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request_iupf(
         ogs_pfcp_build_create_pdr(&req->create_pdr[i], i, pdr);
         i++;
     }
-
     /* Create FAR */
     i = 0;
     ogs_list_for_each(&sess->ipfcp.far_list, far) {
@@ -175,7 +174,6 @@ ogs_pkbuf_t *smf_n4_build_session_establishment_request_iupf(
 
     ogs_pfcp_pdrbuf_clear();
     ogs_free(pfcp_message);
-
     return pkbuf;
 }
 

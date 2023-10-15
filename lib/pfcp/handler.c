@@ -463,7 +463,6 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
     }
 
     pdr->src_if = message->pdi.source_interface.u8;
-
     ogs_pfcp_rule_remove_all(pdr);
 
     for (i = 0; i < OGS_MAX_NUM_OF_FLOW_IN_PDR; i++) {
@@ -492,7 +491,6 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
                     message->pdi.sdf_filter[i].len);
             continue;
         }
-
         rule = ogs_pfcp_rule_add(pdr);
         ogs_assert(rule);
 
@@ -509,7 +507,7 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
         /* If BID, Store SDF Filter ID */
         if (rule->bid)
             rule->sdf_filter_id = sdf_filter.sdf_filter_id;
-
+   
         /* If FD, Apply Flow-Description to the RULE */
         if (rule->fd) {
             char *flow_description = NULL;
@@ -561,7 +559,6 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
                 ogs_ipfw_rule_swap(&rule->ipfw);
         }
     }
-
     if (pdr->dnn) {
         ogs_free(pdr->dnn);
         pdr->dnn = NULL;
@@ -590,6 +587,8 @@ ogs_pfcp_pdr_t *ogs_pfcp_handle_create_pdr(ogs_pfcp_sess_t *sess,
         memcpy(&pdr->f_teid, message->pdi.local_f_teid.data, pdr->f_teid_len);
         ogs_assert(pdr->f_teid.ipv4 || pdr->f_teid.ipv6);
         pdr->f_teid.teid = be32toh(pdr->f_teid.teid);
+        ogs_info("pfcp:handle:2:pdr->f_teid.teid:[%x],pdr->f_teid_len:[%d],message->pdi.local_f_teid.len:[%d]",
+        pdr->f_teid.teid,pdr->f_teid_len,message->pdi.local_f_teid.len);
     }
 
     pdr->qfi = 0;

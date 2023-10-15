@@ -816,7 +816,6 @@ int upf_gtp_open(void)
     ogs_socknode_t *node = NULL;
     ogs_sock_t *sock = NULL;
     int rc;
-    //上行数据
     ogs_list_for_each(&ogs_gtp_self()->gtpu_list, node) {
         sock = ogs_gtp_server(node);
         if (!sock) return OGS_ERROR;
@@ -844,7 +843,6 @@ int upf_gtp_open(void)
      *
      */
     /* Open Tun interface */
-    // 下行数据
     ogs_list_for_each(&ogs_pfcp_self()->dev_list, dev) {
         dev->is_tap = strstr(dev->ifname, "tap");
         dev->fd = ogs_tun_open(dev->ifname, OGS_MAX_IFNAME_LEN, dev->is_tap);
