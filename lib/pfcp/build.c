@@ -407,6 +407,7 @@ void ogs_pfcp_build_create_pdr(
         message->pdi.local_f_teid.presence = 1;
         message->pdi.local_f_teid.data = &pdrbuf[i].f_teid;
         message->pdi.local_f_teid.len = pdr->f_teid_len;
+        ogs_info("f_teid len:%d,%d",message->pdi.local_f_teid.len,pdr->f_teid_len);
     }
 
     if (pdr->qfi) {
