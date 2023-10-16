@@ -750,7 +750,283 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             ogs_fatal("Not implemented : FAR-DST_IF[%d]", far->dst_if);
             ogs_assert_if_reached();
         }
-    } else {
+    } else if (gtp_h->type == OGS_GTPU_MSGTYPE_GPDU_DOWNLINK){
+        ogs_info("OGS_GTPU_MSGTYPE_GPDU_DOWNLINK");
+        // uint16_t eth_type1 = 0;
+        struct ip *ip_h1 = NULL;
+        uint32_t *src_addr1 = NULL;
+        ogs_pfcp_object_t *pfcp_object1 = NULL;
+        ogs_pfcp_sess_t *pfcp_sess1 = NULL;
+        ogs_pfcp_pdr_t *pdr1 = NULL;
+        ogs_pfcp_far_t *far1 = NULL;
+
+        // ogs_pfcp_subnet_t *subnet1 = NULL;
+        // ogs_pfcp_dev_t *dev1 = NULL;
+        // int i;
+
+        ip_h1 = (struct ip *)pkbuf->data;
+        ogs_assert(ip_h1);
+
+        /*
+         * Issue #2210, Discussion #2208, #2209
+         *
+         * Metrics reduce data plane performance.
+         * It should not be used on the UPF/SGW-U data plane
+         * until this issue is resolved.
+         */
+#if 0
+        upf_metrics_inst_global_inc(UPF_METR_GLOB_CTR_GTP_INDATAPKTN3UPF);
+        upf_metrics_inst_by_qfi_add(qfi,
+                UPF_METR_CTR_GTP_INDATAVOLUMEQOSLEVELN3UPF, pkbuf->len);
+#endif
+
+        pfcp_object1 = ogs_pfcp_object_find_by_teid(teid);  //Tunnel End Point identifier
+        if (!pfcp_object1) {
+            /*
+             * TS23.527 Restoration procedures
+             * 4.3 UPF Restoration Procedures
+             * 4.3.2 Restoration Procedure for PSA UPF Restart
+             *
+             * The UPF shall not send GTP-U Error indication message
+             * for a configurable period after an UPF restart
+             * when the UPF receives a G-PDU not matching any PDRs.
+             */
+            if (ogs_time_ntp32_now() >
+                   (ogs_pfcp_self()->local_recovery +
+                    ogs_time_sec(
+                        ogs_app()->time.message.pfcp.association_interval))) {
+                ogs_error("[%s] Send Error Indication [TEID:0x%x] to [%s]",
+                        OGS_ADDR(&sock->local_addr, buf1),
+                        teid,
+                        OGS_ADDR(&from, buf2));
+                ogs_gtp1_send_error_indication(sock, teid, qfi, &from);
+            }
+            goto cleanup;
+        }
+
+        switch(pfcp_object1->type) {
+        case OGS_PFCP_OBJ_PDR_TYPE:
+            /* UPF does not use PDR TYPE */
+            ogs_assert_if_reached();
+            pdr1 = (ogs_pfcp_pdr_t *)pfcp_object1;
+            ogs_assert(pdr1);
+            break;
+        case OGS_PFCP_OBJ_SESS_TYPE:
+            pfcp_sess1 = (ogs_pfcp_sess_t *)pfcp_object1;
+            ogs_assert(pfcp_sess1);
+
+            ogs_list_for_each(&pfcp_sess1->pdr_list, pdr1) { // 根据teid找出的pfcp 查找pdr和会话信息
+
+                /* Check if Source Interface */
+                if (pdr1->src_if == OGS_PFCP_INTERFACE_ACCESS || pdr1->src_if == OGS_PFCP_INTERFACE_LI_FUNCTION)
+                    continue;
+
+                /* Check if QFI */
+                if (qfi && pdr1->qfi != qfi)
+                    continue;
+
+                break;
+            }
+
+            if (!pdr1) {
+                /*
+                 * TS23.527 Restoration procedures
+                 * 4.3 UPF Restoration Procedures
+                 * 4.3.2 Restoration Procedure for PSA UPF Restart
+                 *
+                 * The UPF shall not send GTP-U Error indication message
+                 * for a configurable period after an UPF restart
+                 * when the UPF receives a G-PDU not matching any PDRs.
+                 */
+                if (ogs_time_ntp32_now() >
+                       (ogs_pfcp_self()->local_recovery +
+                        ogs_time_sec(
+                            ogs_app()->time.message.pfcp.association_interval))) {
+                    ogs_error(
+                            "[%s] Send Error Indication [TEID:0x%x] to [%s]",
+                            OGS_ADDR(&sock->local_addr, buf1),
+                            teid,
+                            OGS_ADDR(&from, buf2));
+                    ogs_gtp1_send_error_indication(sock, teid, qfi, &from);
+                }
+                goto cleanup;
+            }
+
+            break;
+        default:
+            ogs_fatal("Unknown type [%d]", pfcp_object1->type);
+            ogs_assert_if_reached();
+        }
+
+        ogs_assert(pdr1);
+        ogs_assert(pdr1->sess);
+        ogs_assert(pdr1->sess->obj.type == OGS_PFCP_OBJ_SESS_TYPE);
+
+        sess = UPF_SESS(pdr1->sess);
+        ogs_assert(sess);
+
+        far1 = pdr1->far;
+        ogs_assert(far1);
+
+        if (ip_h1->ip_v == 4 && sess->ipv4) {
+            src_addr1 = (void *)&ip_h1->ip_src.s_addr;
+            ogs_assert(src_addr1);
+
+            /*
+             * From Issue #1354
+             *
+             * Do not check Indirect Tunnel
+             *    pdr->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+             *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+             */
+            if (far1->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
+                if (src_addr1[0] == sess->ipv4->addr[0]) {
+                    /* Source IP address should be matched in uplink */
+                } else if (check_framed_routes(sess, AF_INET, src_addr1)) {
+                    /* Or source IP address should match a framed route */
+                } else {
+                    ogs_error("[DROP] Source IP-%d Spoofing APN:%s SrcIf:%d DstIf:%d TEID:0x%x",
+                                ip_h1->ip_v, pdr1->dnn, pdr1->src_if, far1->dst_if, teid);
+                    ogs_error("       SRC:%08X, UE:%08X",
+                        be32toh(src_addr1[0]), be32toh(sess->ipv4->addr[0]));
+                    ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+
+                    goto cleanup;
+                }
+            }
+
+            // subnet1 = sess->ipv4->subnet;
+            // eth_type1 = ETHERTYPE_IP;
+
+        } else if (ip_h1->ip_v == 6 && sess->ipv6) {
+            struct ip6_hdr *ip6_h = (struct ip6_hdr *)pkbuf->data;
+            ogs_assert(ip6_h);
+            src_addr1 = (void *)ip6_h->ip6_src.s6_addr;
+            ogs_assert(src_addr1);
+
+            /*
+             * From Issue #1354
+             *
+             * Do not check Router Advertisement
+             *    pdr->src_if = OGS_PFCP_INTERFACE_CP_FUNCTION;
+             *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+             *
+             * Do not check Indirect Tunnel
+             *    pdr->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+             *    far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+             */
+            if (far1->dst_if != OGS_PFCP_INTERFACE_ACCESS) {
+
+/*
+ * Discussion #1776 was raised,
+ * but we decided not to allow unspecified addresses
+ * because Open5GS has already sent interface identifiers
+ * in the registgration/attach process.
+ *
+ *
+ * RFC4861
+ * 4.  Message Formats
+ * 4.1.  Router Solicitation Message Format
+ * IP Fields:
+ *    Source Address
+ *                  An IP address assigned to the sending interface, or
+ *                  the unspecified address if no address is assigned
+ *                  to the sending interface.
+ *
+ * 6.1.  Message Validation
+ * 6.1.1.  Validation of Router Solicitation Messages
+ *  Hosts MUST silently discard any received Router Solicitation
+ *  Messages.
+ *
+ *  A router MUST silently discard any received Router Solicitation
+ *  messages that do not satisfy all of the following validity checks:
+ *
+ *  ..
+ *  ..
+ *
+ *  - If the IP source address is the unspecified address, there is no
+ *    source link-layer address option in the message.
+ */
+                if (IN6_IS_ADDR_LINKLOCAL((struct in6_addr *)src_addr1) &&
+                    src_addr1[2] == sess->ipv6->addr[2] &&
+                    src_addr1[3] == sess->ipv6->addr[3]) {
+                    /*
+                     * if Link-local address,
+                     * Interface Identifier should be matched
+                     */
+                } else if (src_addr1[0] == sess->ipv6->addr[0] &&
+                            src_addr1[1] == sess->ipv6->addr[1]) {
+                    /*
+                     * If Global address
+                     * 64 bit prefix should be matched
+                     */
+                } else if (check_framed_routes(sess, AF_INET6, src_addr1)) {
+                    /* Or source IP address should match a framed route */
+                } else {
+                    ogs_error("[DROP] Source IP-%d Spoofing APN:%s SrcIf:%d DstIf:%d TEID:0x%x",
+                                ip_h1->ip_v, pdr1->dnn, pdr1->src_if, far1->dst_if, teid);
+                    ogs_error("SRC:%08x %08x %08x %08x",
+                            be32toh(src_addr1[0]), be32toh(src_addr1[1]),
+                            be32toh(src_addr1[2]), be32toh(src_addr1[3]));
+                    ogs_error("UE:%08x %08x %08x %08x",
+                            be32toh(sess->ipv6->addr[0]),
+                            be32toh(sess->ipv6->addr[1]),
+                            be32toh(sess->ipv6->addr[2]),
+                            be32toh(sess->ipv6->addr[3]));
+                    ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+
+                    goto cleanup;
+                }
+            }
+
+            // subnet1 = sess->ipv6->subnet;
+            // eth_type1 = ETHERTYPE_IPV6;
+
+        } else {
+            ogs_error("Invalid packet [IP version:%d, Packet Length:%d]",
+                    ip_h1->ip_v, pkbuf->len);
+            ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+            goto cleanup;
+        }
+
+        if (far1->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
+            ogs_assert(true == ogs_pfcp_up_handle_pdr(
+                        pdr1, OGS_GTPU_MSGTYPE_GPDU, pkbuf, &report));
+
+            if (report.type.downlink_data_report) {
+                ogs_error("Indirect Data Fowarding Buffered");
+
+                report.downlink_data.pdr_id = pdr1->id;
+                if (pdr1->qer && pdr1->qer->qfi)
+                    report.downlink_data.qfi = pdr1->qer->qfi; /* for 5GC */
+
+                ogs_assert(OGS_OK ==
+                    upf_pfcp_send_session_report_request(sess, &report));
+            }
+
+        } else if (far1->dst_if == OGS_PFCP_INTERFACE_CP_FUNCTION) {
+
+            if (!far1->gnode) {
+                ogs_error("No Outer Header Creation in FAR");
+                goto cleanup;
+            }
+
+            if ((far1->apply_action & OGS_PFCP_APPLY_ACTION_FORW) == 0) {
+                ogs_error("Not supported Apply Action [0x%x]",
+                            far1->apply_action);
+                goto cleanup;
+            }
+            ogs_info("---!gtpV1_u_recv:ogs_pfcp_up_handle_pdr!");
+            ogs_assert(true == ogs_pfcp_up_handle_pdr(
+                        pdr1, gtp_h->type, pkbuf, &report));
+
+            ogs_assert(report.type.downlink_data_report == 0);
+
+        } else {
+            ogs_fatal("Not implemented : FAR-DST_IF[%d]", far1->dst_if);
+            ogs_assert_if_reached();
+        }
+    }else {
         ogs_error("[DROP] Invalid GTPU Type [%d]", gtp_h->type);
         ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
     }

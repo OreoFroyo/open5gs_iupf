@@ -214,7 +214,7 @@ static void _gtpv1_tun_recv_common_cb(
         upf_sess_urr_acc_add(sess, pdr->urr[i], recvbuf->len, false);
 
     ogs_assert(true == ogs_pfcp_up_handle_pdr(
-                pdr, OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report));
+                pdr, OGS_GTPU_MSGTYPE_GPDU_DOWNLINK, recvbuf, &report));
 
     /*
      * Issue #2210, Discussion #2208, #2209

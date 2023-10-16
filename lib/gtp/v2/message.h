@@ -64,6 +64,7 @@ typedef struct ogs_gtp2_header_s {
 #define OGS_GTPU_MSGTYPE_SUPP_EXTHDR_NOTI       31
 #define OGS_GTPU_MSGTYPE_END_MARKER             254
 #define OGS_GTPU_MSGTYPE_GPDU                   255
+#define OGS_GTPU_MSGTYPE_GPDU_DOWNLINK          253
     uint8_t type;
     uint16_t length;
     union {
