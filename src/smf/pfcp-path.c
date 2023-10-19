@@ -166,7 +166,7 @@ static void pfcp_node_fsm_fini(ogs_pfcp_node_t *node)
 
 static void ipfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 {
-    ogs_info("start a call back function support ipfcp");
+    // ogs_info("start a call back function support ipfcp");
     int rv;
 
     ssize_t size;

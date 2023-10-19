@@ -398,6 +398,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         uint16_t eth_type = 0;
         struct ip *ip_h = NULL;
         uint32_t *src_addr = NULL;
+        uint32_t *dst_addr = NULL;
         ogs_pfcp_object_t *pfcp_object = NULL;
         ogs_pfcp_sess_t *pfcp_sess = NULL;
         ogs_pfcp_pdr_t *pdr = NULL;
@@ -409,7 +410,6 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         ip_h = (struct ip *)pkbuf->data;
         ogs_assert(ip_h);
-
         /*
          * Issue #2210, Discussion #2208, #2209
          *
@@ -422,7 +422,24 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         upf_metrics_inst_by_qfi_add(qfi,
                 UPF_METR_CTR_GTP_INDATAVOLUMEQOSLEVELN3UPF, pkbuf->len);
 #endif
-
+        if(ip_h->ip_v == 4){
+            src_addr = (void *)&ip_h->ip_src.s_addr;
+            dst_addr = (void *)&ip_h->ip_dst.s_addr;
+            ogs_assert(src_addr);
+            ogs_assert(dst_addr);
+        }else if(ip_h->ip_v == 6){
+            struct ip6_hdr *ip6_h = (struct ip6_hdr *)pkbuf->data;
+            ogs_assert(ip6_h);
+            src_addr = (void *)ip6_h->ip6_src.s6_addr;
+            dst_addr = (void *)ip6_h->ip6_dst.s6_addr;
+            ogs_assert(src_addr);
+            ogs_assert(dst_addr);
+        }else{
+            ogs_error("Invalid packet [IP version:%d, Packet Length:%d]",
+                    ip_h->ip_v, pkbuf->len);
+            ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+            goto cleanup;
+        }
         pfcp_object = ogs_pfcp_object_find_by_teid(teid);  //Tunnel End Point identifier
         if (!pfcp_object) {
             /*
@@ -457,30 +474,51 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         case OGS_PFCP_OBJ_SESS_TYPE:
             pfcp_sess = (ogs_pfcp_sess_t *)pfcp_object;
             ogs_assert(pfcp_sess);
+            pdr = ogs_list_first(&pfcp_sess->pdr_list);
+            upf_sess_t *sess1;
+            sess1 = UPF_SESS(pdr->sess);
+            ogs_assert(sess1);
+            ogs_info("!!!!upf sess->ipv4: [%08x]",be32toh(sess1->ipv4->addr[0]));
+            if(src_addr[0] == sess1->ipv4->addr[0]){
+                ogs_info("it's uplink!!!");
+                ogs_list_for_each(&pfcp_sess->pdr_list, pdr) { // 根据teid找出的pfcp 查找pdr和会话信息
 
-            ogs_list_for_each(&pfcp_sess->pdr_list, pdr) { // 根据teid找出的pfcp 查找pdr和会话信息
+                    /* Check if Source Interface */
+                    if (pdr->src_if != OGS_PFCP_INTERFACE_ACCESS &&
+                        pdr->src_if != OGS_PFCP_INTERFACE_CP_FUNCTION)
+                        continue;
 
-                /* Check if Source Interface */
-                if (pdr->src_if != OGS_PFCP_INTERFACE_ACCESS &&
-                    pdr->src_if != OGS_PFCP_INTERFACE_CP_FUNCTION)
-                    continue;
+                    /* Check if TEID */
+                    if (teid != pdr->f_teid.teid)
+                        continue;
 
-                /* Check if TEID */
-                if (teid != pdr->f_teid.teid)
-                    continue;
+                    /* Check if QFI */
+                    if (qfi && pdr->qfi != qfi)
+                        continue;
 
-                /* Check if QFI */
-                if (qfi && pdr->qfi != qfi)
-                    continue;
+                    /* Check if Rule List in PDR */
+                    if (ogs_list_first(&pdr->rule_list) &&
+                        ogs_pfcp_pdr_rule_find_by_packet(pdr, pkbuf) == NULL)
+                        continue;
 
-                /* Check if Rule List in PDR */
-                if (ogs_list_first(&pdr->rule_list) &&
-                    ogs_pfcp_pdr_rule_find_by_packet(pdr, pkbuf) == NULL)
-                    continue;
+                    break;
+                }
+            }else if(dst_addr[0] == sess1->ipv4->addr[0]) {
+                ogs_info("it's downlink!!!");
+                ogs_list_for_each(&pfcp_sess->pdr_list, pdr) { // 根据teid找出的pfcp 查找pdr和会话信息
+                    /* Check if Source Interface */
+                    if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS || pdr->src_if == OGS_PFCP_INTERFACE_LI_FUNCTION)
+                        continue;
 
-                break;
+                    /* Check if QFI */
+                    if (qfi && pdr->qfi != qfi)
+                        continue;
+
+                    break;
+                }
+            }else{
+                ogs_info("ERROR ERROR!!!");
             }
-
             if (!pdr) {
                 /*
                  * TS23.527 Restoration procedures
@@ -504,7 +542,10 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 }
                 goto cleanup;
             }
-
+            ogs_pfcp_ue_ip_addr_t ue_ip_addr;
+            if(pdr->ue_ip_addr_len) ue_ip_addr = pdr->ue_ip_addr;
+            //ogs_assert(ue_ip_addr);
+            ogs_info("!!!!uplink pdr->ue_ip_addr: [%08x]",be32toh(ue_ip_addr.addr));
             break;
         default:
             ogs_fatal("Unknown type [%d]", pfcp_object->type);
@@ -520,10 +561,11 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         far = pdr->far;
         ogs_assert(far);
-
         if (ip_h->ip_v == 4 && sess->ipv4) {
             src_addr = (void *)&ip_h->ip_src.s_addr;
+            dst_addr = (void *)&ip_h->ip_dst.s_addr;
             ogs_assert(src_addr);
+            ogs_assert(dst_addr);
 
             /*
              * From Issue #1354
@@ -555,7 +597,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             struct ip6_hdr *ip6_h = (struct ip6_hdr *)pkbuf->data;
             ogs_assert(ip6_h);
             src_addr = (void *)ip6_h->ip6_src.s6_addr;
+            dst_addr = (void *)ip6_h->ip6_dst.s6_addr;
             ogs_assert(src_addr);
+            ogs_assert(dst_addr);
 
             /*
              * From Issue #1354
@@ -641,7 +685,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
             goto cleanup;
         }
-
+        ogs_info("gtp-u uplink src_addr [%08x]", be32toh(src_addr[0]));
+        ogs_info("gtp-u uplink dst_addr [%08x]", be32toh(dst_addr[0]));
+        
         if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {         //根据FAR的配置,将报文发往内核态Tun接口或丢弃
             ogs_info("_gtpv1_u_recv_cb---!OGS_PFCP_INTERFACE_CORE!");
             if (!subnet) {
@@ -677,37 +723,6 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 ogs_pkbuf_t *recvbuf = ogs_pkbuf_copy(pkbuf);
                 ogs_assert(true == ogs_pfcp_up_handle_pdr(   //有发送
                 pdr, OGS_GTPU_MSGTYPE_GPDU, recvbuf, &report));
-                // ogs_gtp_node_t *gnode1 = NULL;
-                // ogs_ip_t ip1;
-                // ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
-                // ip1.len = OGS_IPV4_LEN;
-                // ip1.ipv4 = 1;
-                // ip1.ipv6 = 0;
-                // int haha;
-                // if (!gnode1){
-                // gnode1 = ogs_gtp_node_add_by_ip(&ogs_gtp_self()->gtpu_peer_list, &ip1, ogs_gtp_self()->gtpu_port);
-                //     ogs_error("INC:ogs_gtp_node_add_by_ip() failed");
-                // }
-                // haha = ogs_gtp_connect(
-                //         ogs_gtp_self()->gtpu_sock, ogs_gtp_self()->gtpu_sock6, gnode1);
-                // if (haha != OGS_OK) {
-                //     ogs_error("INC:ogs_gtp_connect() failed");
-                // }
-                // ogs_pfcp_far_t far2;
-                // far2.gnode = gnode1;
-                // ogs_pfcp_far_t *far1 = &far2;
-                // ogs_gtp2_header_t gtp_hdesc;
-                // ogs_gtp2_extension_header_t ext_hdesc;
-                // memset(&gtp_hdesc, 0, sizeof(gtp_hdesc));
-                // memset(&ext_hdesc, 0, sizeof(ext_hdesc));
-                // gtp_hdesc.type = 255;
-                // gtp_hdesc.teid = far1->outer_header_creation.teid; 
-                // if (pdr->qer && pdr->qer->qfi)
-                //     ext_hdesc.qos_flow_identifier = 1; //猜测
-                // ogs_info("data prepared!");
-                // ogs_pkbuf_t *sendbuf1 = NULL;
-                // sendbuf1 = ogs_pkbuf_copy(pkbuf);
-                // ogs_gtp2_send_user_plane(gnode1,&gtp_hdesc,&ext_hdesc,sendbuf1);
             }else{
                 if (ogs_tun_write(dev->fd, pkbuf) != OGS_OK)
                  ogs_warn("ogs_tun_write() failed");
@@ -752,17 +767,13 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
         }
     } else if (gtp_h->type == OGS_GTPU_MSGTYPE_GPDU_DOWNLINK){
         ogs_info("OGS_GTPU_MSGTYPE_GPDU_DOWNLINK");
-        // uint16_t eth_type1 = 0;
         struct ip *ip_h1 = NULL;
         uint32_t *src_addr1 = NULL;
+        uint32_t *dst_addr1 = NULL;
         ogs_pfcp_object_t *pfcp_object1 = NULL;
         ogs_pfcp_sess_t *pfcp_sess1 = NULL;
         ogs_pfcp_pdr_t *pdr1 = NULL;
         ogs_pfcp_far_t *far1 = NULL;
-
-        // ogs_pfcp_subnet_t *subnet1 = NULL;
-        // ogs_pfcp_dev_t *dev1 = NULL;
-        // int i;
 
         ip_h1 = (struct ip *)pkbuf->data;
         ogs_assert(ip_h1);
@@ -851,6 +862,10 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                 }
                 goto cleanup;
             }
+            ogs_pfcp_ue_ip_addr_t ue_ip_addr;
+            if(pdr1->ue_ip_addr_len) ue_ip_addr = pdr1->ue_ip_addr;
+            //ogs_assert(ue_ip_addr);
+            ogs_info("!!!!downlink pdr->ue_ip_addr: [%08x]",be32toh(ue_ip_addr.addr));
 
             break;
         default:
@@ -870,7 +885,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
 
         if (ip_h1->ip_v == 4 && sess->ipv4) {
             src_addr1 = (void *)&ip_h1->ip_src.s_addr;
+            dst_addr1 = (void *)&ip_h1->ip_dst.s_addr;
             ogs_assert(src_addr1);
+            ogs_assert(dst_addr1);
 
             /*
              * From Issue #1354
@@ -902,7 +919,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             struct ip6_hdr *ip6_h = (struct ip6_hdr *)pkbuf->data;
             ogs_assert(ip6_h);
             src_addr1 = (void *)ip6_h->ip6_src.s6_addr;
+            dst_addr1 = (void *)ip6_h->ip6_dst.s6_addr;
             ogs_assert(src_addr1);
+            ogs_assert(dst_addr1);
 
             /*
              * From Issue #1354
@@ -976,7 +995,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                     ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
 
                     goto cleanup;
-                }
+                } 
             }
 
             // subnet1 = sess->ipv6->subnet;
@@ -988,6 +1007,8 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
             goto cleanup;
         }
+        ogs_info("gtp-u downlink src_addr [%08x]", be32toh(src_addr1[0]));
+        ogs_info("gtp-u downlink dst_addr [%08x]", be32toh(dst_addr1[0]));
 
         if (far1->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
             ogs_assert(true == ogs_pfcp_up_handle_pdr(

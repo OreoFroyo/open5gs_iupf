@@ -168,7 +168,6 @@ ogs_pfcp_rule_t *ogs_pfcp_pdr_rule_find_by_packet(
         ogs_trace("HLEN:%d  DST:%08x %08x %08x %08x",
                 ip_hlen, be32toh(dst_addr[0]), be32toh(dst_addr[1]),
                 be32toh(dst_addr[2]), be32toh(dst_addr[3]));
-
         ogs_trace("PROTO:%d SRC:%d-%d DST:%d-%d",
                 ipfw->proto,
                 ipfw->port.src.low,
