@@ -94,6 +94,9 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
             case NGAP_ProcedureCode_id_UEContextReleaseRequest:
                 ngap_handle_ue_context_release_request( gnb, pdu);
                 break;
+            case NGAP_ProcedureCode_id_LocationReport:
+                ngap_handle_location_report(gnb,pdu);
+                break; 
             case NGAP_ProcedureCode_id_PathSwitchRequest:
                 ngap_handle_path_switch_request(gnb, pdu);
                 break;
