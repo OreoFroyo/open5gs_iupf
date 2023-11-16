@@ -30,6 +30,9 @@ extern "C" {
 
 #define ngap_event_push  amf_sctp_event_push
 
+int controller_open(void);
+void controller_close(void);
+ogs_sock_t *controller_server(ogs_socknode_t *node)
 int ngap_open(void);
 void ngap_close(void);
 

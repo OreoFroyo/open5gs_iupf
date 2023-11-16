@@ -30,6 +30,7 @@ int app_initialize(const char *const argv[])
         ogs_error("Failed to intialize AMF");
         return rv;
     }
+    
     ogs_info("AMF initialize...done");
 
     return OGS_OK;

@@ -26,7 +26,7 @@ static void usrsctp_recv_handler(struct socket *socket, void *data, int flags);
 #else
 static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data);
 #endif
-
+void controller_handler(ogs_sock_t *sock);
 void ngap_accept_handler(ogs_sock_t *sock);
 void ngap_recv_handler(ogs_sock_t *sock);
 
@@ -95,6 +95,54 @@ static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data)
 }
 #endif
 
+void controller_handler(ogs_sock_t *sock) {
+     int len;
+    ssize_t size;
+    char buf1[OGS_ADDRSTRLEN];
+    char buf2[OGS_ADDRSTRLEN];
+    ogs_info("_gtpv1_u_recv_cb");
+    upf_sess_t *sess = NULL;
+
+    ogs_pkbuf_t *pkbuf = NULL;
+    ogs_sock_t *sock = NULL;
+    ogs_sockaddr_t from;
+
+    ogs_gtp2_header_t *gtp_h = NULL;
+    ogs_pfcp_user_plane_report_t report;
+
+    uint32_t teid;
+    uint8_t qfi;
+
+    ogs_assert(fd != INVALID_SOCKET);
+    sock = data;
+    ogs_assert(sock);
+
+    pkbuf = ogs_pkbuf_alloc(packet_pool, OGS_MAX_PKT_LEN);
+    ogs_assert(pkbuf);
+    ogs_pkbuf_reserve(pkbuf, OGS_TUN_MAX_HEADROOM);
+    ogs_pkbuf_put(pkbuf, OGS_MAX_PKT_LEN-OGS_TUN_MAX_HEADROOM);
+    // 从socket接收一个报文到缓冲区pkbuf
+    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
+    if (size <= 0) {
+        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+                "ogs_recv() failed");
+        goto cleanup;
+    }
+
+    ogs_pkbuf_trim(pkbuf, size);
+
+    ogs_assert(pkbuf);
+    ogs_assert(pkbuf->len);
+    ogs_info("yes!yes!yes!");
+    // if (gtp_h->version != OGS_GTP2_VERSION_1) {
+    //     ogs_error("[DROP] Invalid GTPU version [%d]", gtp_h->version);
+    //     ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+    //     goto cleanup;
+    // }
+    // 空口回送请求? --->发送回复
+cleanup:
+    ogs_pkbuf_free(pkbuf);
+}
 void ngap_accept_handler(ogs_sock_t *sock)
 {
     char buf[OGS_ADDRSTRLEN];

@@ -27,6 +27,41 @@
 #include "nas-path.h"
 #include "sbi-path.h"
 
+int controller_open(void) {
+    ogs_socknode_t *node = NULL;
+        ogs_list_for_each(&amf_self()->controller_list, node)
+        if (controller_server(node) == NULL) return OGS_ERROR;
+}
+
+void controller_close(void) {
+
+}
+
+ogs_sock_t *controller_server(ogs_socknode_t *node){
+    
+    char buf[OGS_ADDRSTRLEN];
+    ogs_sock_t *sock = NULL;
+    ogs_poll_t *poll = NULL;
+
+    ogs_assert(node);
+
+    sock = ogs_udp_server(SOCK_STREAM, node->addr, node->option);
+    if (!sock) return NULL;
+    poll = ogs_pollset_add(ogs_app()->pollset,
+            OGS_POLLIN, sock->fd, lksctp_accept_handler, sock);
+    ogs_assert(node);
+
+    node->poll = poll;
+    node->sock = sock;
+    node->cleanup = ogs_sock_destroy;
+
+    ogs_info("controller server() [%s]:%d",
+            OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
+
+    return sock;
+
+}
+
 int ngap_open(void)
 {
     ogs_socknode_t *node = NULL;
