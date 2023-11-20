@@ -100,7 +100,7 @@ void controller_handler(ogs_sock_t *sock) {
     ssize_t size;
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
-    ogs_info("_gtpv1_u_recv_cb");
+    ogs_info("controller_handler");
     upf_sess_t *sess = NULL;
 
     ogs_pkbuf_t *pkbuf = NULL;
@@ -134,6 +134,7 @@ void controller_handler(ogs_sock_t *sock) {
     ogs_assert(pkbuf);
     ogs_assert(pkbuf->len);
     ogs_info("yes!yes!yes!");
+    ngap_handle_path_switch_request(ogs_app()->controller_stored.gnb, ogs_app()->controller_stored.message);
     // if (gtp_h->version != OGS_GTP2_VERSION_1) {
     //     ogs_error("[DROP] Invalid GTPU version [%d]", gtp_h->version);
     //     ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);

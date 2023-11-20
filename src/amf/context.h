@@ -157,7 +157,7 @@ typedef struct amf_gnb_s {
     ogs_pkbuf_t     *ng_reset_ack; /* Reset message */
 
     ogs_list_t      ran_ue_list;
-
+    
 } amf_gnb_t;
 
 struct ran_ue_s {

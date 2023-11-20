@@ -48,7 +48,7 @@ ogs_sock_t *controller_server(ogs_socknode_t *node){
     sock = ogs_udp_server(SOCK_STREAM, node->addr, node->option);
     if (!sock) return NULL;
     poll = ogs_pollset_add(ogs_app()->pollset,
-            OGS_POLLIN, sock->fd, lksctp_accept_handler, sock);
+            OGS_POLLIN, sock->fd, controller_handler, sock);
     ogs_assert(node);
 
     node->poll = poll;
@@ -57,7 +57,7 @@ ogs_sock_t *controller_server(ogs_socknode_t *node){
 
     ogs_info("controller server() [%s]:%d",
             OGS_ADDR(node->addr, buf), OGS_PORT(node->addr));
-
+    //todo: modify : ngap_handle_path_switch_request(gnb, pdu)
     return sock;
 
 }

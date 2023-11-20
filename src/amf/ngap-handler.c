@@ -2989,149 +2989,151 @@ void ngap_handle_location_report(
     ogs_assert(PathSwitchRequest);
 
     ogs_info("Loacation Report");
+    ogs_app()->controller_stored.exist = 1;
+    ogs_app()->controller_stored.gnb = gnb;
+    ogs_app()->controller_stored.message = message;
+     ogs_info("gnb and message stored ");
+    // for (i = 0; i < PathSwitchRequest->protocolIEs.list.count; i++) {
+    //     ie = PathSwitchRequest->protocolIEs.list.array[i];
+    //     switch (ie->id) {
+    //     case NGAP_ProtocolIE_ID_id_RAN_UE_NGAP_ID:
+    //         RAN_UE_NGAP_ID = &ie->value.choice.RAN_UE_NGAP_ID;
+    //         break;
+    //     case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
+    //         AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
+    //         break;
+    //     case NGAP_ProtocolIE_ID_id_UserLocationInformation:
+    //         UserLocationInformation = &ie->value.choice.UserLocationInformation;
+    //         break;
+    //     case NGAP_ProtocolIE_ID_id_UESecurityCapabilities:
+    //         UESecurityCapabilities = &ie->value.choice.UESecurityCapabilities;
+    //         break;
+    //     case NGAP_ProtocolIE_ID_id_PDUSessionResourceToBeSwitchedDLList:
+    //         PDUSessionResourceToBeSwitchedDLList =
+    //             &ie->value.choice.PDUSessionResourceToBeSwitchedDLList;
+    //         break;
+    //     default:
+    //         break;
+    //     }
+    // }
 
-    for (i = 0; i < PathSwitchRequest->protocolIEs.list.count; i++) {
-        ie = PathSwitchRequest->protocolIEs.list.array[i];
-        switch (ie->id) {
-        case NGAP_ProtocolIE_ID_id_RAN_UE_NGAP_ID:
-            RAN_UE_NGAP_ID = &ie->value.choice.RAN_UE_NGAP_ID;
-            break;
-        case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
-            AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
-            break;
-        case NGAP_ProtocolIE_ID_id_UserLocationInformation:
-            UserLocationInformation = &ie->value.choice.UserLocationInformation;
-            break;
-        case NGAP_ProtocolIE_ID_id_UESecurityCapabilities:
-            UESecurityCapabilities = &ie->value.choice.UESecurityCapabilities;
-            break;
-        case NGAP_ProtocolIE_ID_id_PDUSessionResourceToBeSwitchedDLList:
-            PDUSessionResourceToBeSwitchedDLList =
-                &ie->value.choice.PDUSessionResourceToBeSwitchedDLList;
-            break;
-        default:
-            break;
-        }
-    }
+    // ogs_debug("    IP[%s] RAN_ID[%d]",
+    //         OGS_ADDR(gnb->sctp.addr, buf), gnb->gnb_id);
 
-    ogs_debug("    IP[%s] RAN_ID[%d]",
-            OGS_ADDR(gnb->sctp.addr, buf), gnb->gnb_id);
+    // if (!RAN_UE_NGAP_ID) {
+    //     ogs_error("No RAN_UE_NGAP_ID");
+    //     r = ngap_send_error_indication(gnb, NULL, NULL,
+    //             NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    if (!RAN_UE_NGAP_ID) {
-        ogs_error("No RAN_UE_NGAP_ID");
-        r = ngap_send_error_indication(gnb, NULL, NULL,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // if (!AMF_UE_NGAP_ID) {
+    //     ogs_error("No AMF_UE_NGAP_ID");
+    //     r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
+    //             NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    if (!AMF_UE_NGAP_ID) {
-        ogs_error("No AMF_UE_NGAP_ID");
-        r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
+    //             (unsigned long *)&amf_ue_ngap_id) != 0) {
+    //     ogs_error("Invalid AMF_UE_NGAP_ID");
+    //     r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
+    //             NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
-                (unsigned long *)&amf_ue_ngap_id) != 0) {
-        ogs_error("Invalid AMF_UE_NGAP_ID");
-        r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // ran_ue = ran_ue_find_by_amf_ue_ngap_id(amf_ue_ngap_id);
+    // if (!ran_ue) {
+    //     ogs_error("No RAN UE Context : AMF_UE_NGAP_ID[%lld]",
+    //             (long long)amf_ue_ngap_id);
+    //     r = ngap_send_error_indication(
+    //             gnb, (uint32_t *)RAN_UE_NGAP_ID, &amf_ue_ngap_id,
+    //             NGAP_Cause_PR_radioNetwork,
+    //             NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    ran_ue = ran_ue_find_by_amf_ue_ngap_id(amf_ue_ngap_id);
-    if (!ran_ue) {
-        ogs_error("No RAN UE Context : AMF_UE_NGAP_ID[%lld]",
-                (long long)amf_ue_ngap_id);
-        r = ngap_send_error_indication(
-                gnb, (uint32_t *)RAN_UE_NGAP_ID, &amf_ue_ngap_id,
-                NGAP_Cause_PR_radioNetwork,
-                NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // amf_ue = ran_ue->amf_ue;
+    // if (!amf_ue) {
+    //     ogs_error("Cannot find AMF-UE Context [%lld]",
+    //             (long long)amf_ue_ngap_id);
+    //     r = ngap_send_error_indication(
+    //             gnb, &ran_ue->ran_ue_ngap_id, &ran_ue->amf_ue_ngap_id,
+    //             NGAP_Cause_PR_radioNetwork,
+    //             NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    amf_ue = ran_ue->amf_ue;
-    if (!amf_ue) {
-        ogs_error("Cannot find AMF-UE Context [%lld]",
-                (long long)amf_ue_ngap_id);
-        r = ngap_send_error_indication(
-                gnb, &ran_ue->ran_ue_ngap_id, &ran_ue->amf_ue_ngap_id,
-                NGAP_Cause_PR_radioNetwork,
-                NGAP_CauseRadioNetwork_unknown_local_UE_NGAP_ID);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // ogs_info("    [OLD] RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] ",
+    //     ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
+    // ogs_info("    [OLD] TAC[%d] CellID[0x%llx]",
+    //     amf_ue->nr_tai.tac.v, (long long)amf_ue->nr_cgi.cell_id);
 
-    ogs_info("    [OLD] RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] ",
-        ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
-    ogs_info("    [OLD] TAC[%d] CellID[0x%llx]",
-        amf_ue->nr_tai.tac.v, (long long)amf_ue->nr_cgi.cell_id);
+    // /* Update RAN-UE-NGAP-ID */
+    // ran_ue->ran_ue_ngap_id = *RAN_UE_NGAP_ID;
 
-    /* Update RAN-UE-NGAP-ID */
-    ran_ue->ran_ue_ngap_id = *RAN_UE_NGAP_ID;
+    // /* Change ran_ue to the NEW gNB */
+    // ran_ue_switch_to_gnb(ran_ue, gnb);
 
-    /* Change ran_ue to the NEW gNB */
-    ran_ue_switch_to_gnb(ran_ue, gnb);
+    // if (!UserLocationInformation) {
+    //     ogs_error("No UserLocationInformation");
+    //     r = ngap_send_error_indication2(amf_ue,
+    //             NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    if (!UserLocationInformation) {
-        ogs_error("No UserLocationInformation");
-        r = ngap_send_error_indication2(amf_ue,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // if (UserLocationInformation->present !=
+    //         NGAP_UserLocationInformation_PR_userLocationInformationNR) {
+    //     ogs_error("Not implemented UserLocationInformation[%d]",
+    //             UserLocationInformation->present);
+    //     r = ngap_send_error_indication2(amf_ue,
+    //             NGAP_Cause_PR_protocol, NGAP_CauseProtocol_unspecified);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    if (UserLocationInformation->present !=
-            NGAP_UserLocationInformation_PR_userLocationInformationNR) {
-        ogs_error("Not implemented UserLocationInformation[%d]",
-                UserLocationInformation->present);
-        r = ngap_send_error_indication2(amf_ue,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_unspecified);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // if (!UESecurityCapabilities) {
+    //     ogs_error("No UESecurityCapabilities");
+    //     r = ngap_send_error_indication2(amf_ue,
+    //             NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    if (!UESecurityCapabilities) {
-        ogs_error("No UESecurityCapabilities");
-        r = ngap_send_error_indication2(amf_ue,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
+    // if (!PDUSessionResourceToBeSwitchedDLList) {
+    //     ogs_error("No PDUSessionResourceToBeSwitchedDLList");
+    //     r = ngap_send_error_indication2(amf_ue,
+    //             NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
 
-    if (!PDUSessionResourceToBeSwitchedDLList) {
-        ogs_error("No PDUSessionResourceToBeSwitchedDLList");
-        r = ngap_send_error_indication2(amf_ue,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
-
-    if (!SECURITY_CONTEXT_IS_VALID(amf_ue)) {
-        ogs_error("No Security Context");
-        r = ngap_send_error_indication2(amf_ue,
-                NGAP_Cause_PR_nas, NGAP_CauseNas_authentication_failure);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
-    sleep(100)
-    ogs_info("    [NEW] RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] ",
-        ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
-
+    // if (!SECURITY_CONTEXT_IS_VALID(amf_ue)) {
+    //     ogs_error("No Security Context");
+    //     r = ngap_send_error_indication2(amf_ue,
+    //             NGAP_Cause_PR_nas, NGAP_CauseNas_authentication_failure);
+    //     ogs_expect(r == OGS_OK);
+    //     ogs_assert(r != OGS_ERROR);
+    //     return;
+    // }
+    // ogs_info("    [NEW] RAN_UE_NGAP_ID[%d] AMF_UE_NGAP_ID[%lld] ",
+    //     ran_ue->ran_ue_ngap_id, (long long)ran_ue->amf_ue_ngap_id);
+    
     // UserLocationInformationNR =
     //         UserLocationInformation->choice.userLocationInformationNR;
     // ogs_assert(UserLocationInformationNR);
