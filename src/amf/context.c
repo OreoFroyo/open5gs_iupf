@@ -356,27 +356,27 @@ int amf_context_parse_config(void)
                         ogs_sockopt_t option;
                         bool is_option = false;
 
-                        if (ogs_yaml_iter_type(&ngap_array) ==
+                        if (ogs_yaml_iter_type(&control_array) ==
                                 YAML_MAPPING_NODE) {
-                            memcpy(&ngap_iter, &ngap_array,
+                            memcpy(&ngap_iter, &control_array,
                                     sizeof(ogs_yaml_iter_t));
-                        } else if (ogs_yaml_iter_type(&ngap_array) ==
+                        } else if (ogs_yaml_iter_type(&control_array) ==
                             YAML_SEQUENCE_NODE) {
-                            if (!ogs_yaml_iter_next(&ngap_array))
+                            if (!ogs_yaml_iter_next(&control_array))
                                 break;
-                            ogs_yaml_iter_recurse(&ngap_array, &ngap_iter);
-                        } else if (ogs_yaml_iter_type(&ngap_array) ==
+                            ogs_yaml_iter_recurse(&control_array, &control_iter);
+                        } else if (ogs_yaml_iter_type(&control_array) ==
                             YAML_SCALAR_NODE) {
                             break;
                         } else
                             ogs_assert_if_reached();
 
-                        while (ogs_yaml_iter_next(&ngap_iter)) {
+                        while (ogs_yaml_iter_next(&control_iter)) {
                             const char *ngap_key =
-                                ogs_yaml_iter_key(&ngap_iter);
+                                ogs_yaml_iter_key(&control_iter);
                             ogs_assert(ngap_key);
                             if (!strcmp(ngap_key, "family")) {
-                                const char *v = ogs_yaml_iter_value(&ngap_iter);
+                                const char *v = ogs_yaml_iter_value(&control_iter);
                                 if (v) family = atoi(v);
                                 if (family != AF_UNSPEC &&
                                     family != AF_INET && family != AF_INET6) {
@@ -458,7 +458,7 @@ int amf_context_parse_config(void)
                     //                 NULL : &self.ngap_list6,
                     //             NULL, self.ngap_port, NULL);
 
-                    }
+                    
                 } else if (!strcmp(amf_key, "guami")) {
                     ogs_yaml_iter_t guami_array, guami_iter;
                     ogs_yaml_iter_recurse(&amf_iter, &guami_array);

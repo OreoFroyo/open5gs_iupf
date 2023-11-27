@@ -7,6 +7,8 @@
         "string": "c",
         "string_view": "c",
         "xutility": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "sbi-path.h": "c",
+        "nas-security.h": "c"
     }
 }

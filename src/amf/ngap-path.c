@@ -26,11 +26,12 @@
 #include "nas-security.h"
 #include "nas-path.h"
 #include "sbi-path.h"
-
+#include "ngap-sctp.c"
 int controller_open(void) {
     ogs_socknode_t *node = NULL;
-        ogs_list_for_each(&amf_self()->controller_list, node)
-        if (controller_server(node) == NULL) return OGS_ERROR;
+    ogs_list_for_each(&amf_self()->controller_list, node)
+    if (controller_server(node) == NULL) return OGS_ERROR;
+    return 0;
 }
 
 void controller_close(void) {
@@ -45,7 +46,7 @@ ogs_sock_t *controller_server(ogs_socknode_t *node){
 
     ogs_assert(node);
 
-    sock = ogs_udp_server(SOCK_STREAM, node->addr, node->option);
+    sock = ogs_udp_server(node->addr, node->option);
     if (!sock) return NULL;
     poll = ogs_pollset_add(ogs_app()->pollset,
             OGS_POLLIN, sock->fd, controller_handler, sock);
