@@ -27,6 +27,7 @@
 #include "nas-path.h"
 #include "sbi-path.h"
 #include "ngap-sctp.c"
+#include "ngap-handler.h"
 int controller_open(void) {
     ogs_socknode_t *node = NULL;
     ogs_list_for_each(&amf_self()->controller_list, node)
@@ -61,6 +62,43 @@ ogs_sock_t *controller_server(ogs_socknode_t *node){
     //todo: modify : ngap_handle_path_switch_request(gnb, pdu)
     return sock;
 
+}
+
+void controller_handler(short when, ogs_socket_t fd, void *data) {
+    ssize_t size;
+    ogs_info("controller_handler");
+    ogs_pkbuf_t *pkbuf = NULL;
+    ogs_sockaddr_t from;
+    ogs_sock_t *sock = NULL;
+    ogs_assert(fd != INVALID_SOCKET);
+    sock = data;
+    ogs_assert(sock);
+    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
+    ogs_assert(pkbuf);
+    ogs_pkbuf_reserve(pkbuf, 16);
+    ogs_pkbuf_put(pkbuf, OGS_MAX_PKT_LEN-16);
+    // 从socket接收一个报文到缓冲区pkbuf
+    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
+    if (size <= 0) {
+        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
+                "ogs_recv() failed");
+        goto cleanup;
+    }
+
+    ogs_pkbuf_trim(pkbuf, size);
+
+    ogs_assert(pkbuf);
+    ogs_assert(pkbuf->len);
+    ogs_info("yes!yes!yes!");
+    ngap_handle_path_switch_request(ogs_app()->controller_stored.gnb, ogs_app()->controller_stored.message);
+    // if (gtp_h->version != OGS_GTP2_VERSION_1) {
+    //     ogs_error("[DROP] Invalid GTPU version [%d]", gtp_h->version);
+    //     ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
+    //     goto cleanup;
+    // }
+    // 空口回送请求? --->发送回复
+cleanup:
+    ogs_pkbuf_free(pkbuf);
 }
 
 int ngap_open(void)

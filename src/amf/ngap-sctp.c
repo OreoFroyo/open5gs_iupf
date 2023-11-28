@@ -18,17 +18,18 @@
  */
 
 #include "ogs-sctp.h"
-#include "context.h"
 #include "ngap-path.h"
-#include "ngap-handler.h"
+
 #if HAVE_USRSCTP
 static void usrsctp_recv_handler(struct socket *socket, void *data, int flags);
 #else
 static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data);
 #endif
-void controller_handler(short when, ogs_socket_t fd, void *data);
+
 void ngap_accept_handler(ogs_sock_t *sock);
 void ngap_recv_handler(ogs_sock_t *sock);
+
+
 
 ogs_sock_t *ngap_server(ogs_socknode_t *node)
 {
@@ -95,42 +96,6 @@ static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data)
 }
 #endif
 
-void controller_handler(short when, ogs_socket_t fd, void *data) {
-    ssize_t size;
-    ogs_info("controller_handler");
-    ogs_pkbuf_t *pkbuf = NULL;
-    ogs_sockaddr_t from;
-    ogs_sock_t *sock = NULL;
-    ogs_assert(fd != INVALID_SOCKET);
-    sock = data;
-    ogs_assert(sock);
-    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
-    ogs_assert(pkbuf);
-    ogs_pkbuf_reserve(pkbuf, OGS_TUN_MAX_HEADROOM);
-    ogs_pkbuf_put(pkbuf, OGS_MAX_PKT_LEN-OGS_TUN_MAX_HEADROOM);
-    // 从socket接收一个报文到缓冲区pkbuf
-    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
-    if (size <= 0) {
-        ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
-                "ogs_recv() failed");
-        goto cleanup;
-    }
-
-    ogs_pkbuf_trim(pkbuf, size);
-
-    ogs_assert(pkbuf);
-    ogs_assert(pkbuf->len);
-    ogs_info("yes!yes!yes!");
-    ngap_handle_path_switch_request(ogs_app()->controller_stored.gnb, ogs_app()->controller_stored.message);
-    // if (gtp_h->version != OGS_GTP2_VERSION_1) {
-    //     ogs_error("[DROP] Invalid GTPU version [%d]", gtp_h->version);
-    //     ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);
-    //     goto cleanup;
-    // }
-    // 空口回送请求? --->发送回复
-cleanup:
-    ogs_pkbuf_free(pkbuf);
-}
 void ngap_accept_handler(ogs_sock_t *sock)
 {
     char buf[OGS_ADDRSTRLEN];
