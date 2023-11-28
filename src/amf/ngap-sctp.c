@@ -100,12 +100,16 @@ void controller_handler(short when, ogs_socket_t fd, void *data) {
     ogs_info("controller_handler");
     ogs_pkbuf_t *pkbuf = NULL;
     ogs_sockaddr_t from;
-
+    ogs_sock_t *sock = NULL;
+    ogs_assert(fd != INVALID_SOCKET);
+    sock = data;
+    ogs_assert(sock);
     pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
     ogs_assert(pkbuf);
-    ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
+    ogs_pkbuf_reserve(pkbuf, OGS_TUN_MAX_HEADROOM);
+    ogs_pkbuf_put(pkbuf, OGS_MAX_PKT_LEN-OGS_TUN_MAX_HEADROOM);
     // 从socket接收一个报文到缓冲区pkbuf
-    size = ogs_recvfrom(sock->fd, pkbuf->data, pkbuf->len, 0, &from);
+    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
     if (size <= 0) {
         ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
                 "ogs_recv() failed");
