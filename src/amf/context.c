@@ -350,7 +350,6 @@ int amf_context_parse_config(void)
                         int i, num = 0;
                         const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
                         uint16_t port = 38413;
-                        const char *dev = NULL;
                         ogs_sockaddr_t *addr = NULL;
 
                         ogs_sockopt_t option;
@@ -410,8 +409,6 @@ int amf_context_parse_config(void)
                             } else if (!strcmp(ngap_key, "port")) {
                                 const char *v = ogs_yaml_iter_value(&control_iter);
                                 if (v) port = atoi(v);
-                            } else if (!strcmp(ngap_key, "dev")) {
-                                dev = ogs_yaml_iter_value(&control_iter);
                             } else if (!strcmp(ngap_key, "option")) {
                                 rv = ogs_app_config_parse_sockopt(
                                         &control_iter, &option);
