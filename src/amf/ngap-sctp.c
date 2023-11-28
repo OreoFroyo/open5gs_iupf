@@ -20,13 +20,13 @@
 #include "ogs-sctp.h"
 #include "context.h"
 #include "ngap-path.h"
-
+#include "ngap-handler.h"
 #if HAVE_USRSCTP
 static void usrsctp_recv_handler(struct socket *socket, void *data, int flags);
 #else
 static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data);
 #endif
-void controller_handler(ogs_sock_t *sock);
+void controller_handler(short when, ogs_socket_t fd, void *data);
 void ngap_accept_handler(ogs_sock_t *sock);
 void ngap_recv_handler(ogs_sock_t *sock);
 
@@ -95,30 +95,17 @@ static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data)
 }
 #endif
 
-void controller_handler(ogs_sock_t *sock) {
-    int len;
+void controller_handler(short when, ogs_socket_t fd, void *data) {
     ssize_t size;
-    char buf1[OGS_ADDRSTRLEN];
-    char buf2[OGS_ADDRSTRLEN];
     ogs_info("controller_handler");
-    char buf[OGS_ADDRSTRLEN];
     ogs_pkbuf_t *pkbuf = NULL;
-    ogs_sock_t *sock = NULL;
     ogs_sockaddr_t from;
-
-    ogs_gtp2_header_t *gtp_h = NULL;
-    ogs_pfcp_user_plane_report_t report;
-
-    uint32_t teid;
-    uint8_t qfi;
-    sock = data;
-    ogs_assert(sock);
 
     pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
     ogs_assert(pkbuf);
     ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
     // 从socket接收一个报文到缓冲区pkbuf
-    size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
+    size = ogs_recvfrom(sock->fd, pkbuf->data, pkbuf->len, 0, &from);
     if (size <= 0) {
         ogs_log_message(OGS_LOG_ERROR, ogs_socket_errno,
                 "ogs_recv() failed");
