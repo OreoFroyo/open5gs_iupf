@@ -358,7 +358,7 @@ int amf_context_parse_config(void)
 
                         if (ogs_yaml_iter_type(&control_array) ==
                                 YAML_MAPPING_NODE) {
-                            memcpy(&ngap_iter, &control_array,
+                            memcpy(&control_iter, &control_array,
                                     sizeof(ogs_yaml_iter_t));
                         } else if (ogs_yaml_iter_type(&control_array) ==
                             YAML_SEQUENCE_NODE) {
@@ -390,7 +390,7 @@ int amf_context_parse_config(void)
                                     !strcmp(ngap_key, "name")) {
                                 ogs_yaml_iter_t hostname_iter;
                                 ogs_yaml_iter_recurse(
-                                        &ngap_iter, &hostname_iter);
+                                        &control_iter, &hostname_iter);
                                 ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
                                     YAML_MAPPING_NODE);
 
@@ -408,13 +408,13 @@ int amf_context_parse_config(void)
                                     ogs_yaml_iter_type(&hostname_iter) ==
                                         YAML_SEQUENCE_NODE);
                             } else if (!strcmp(ngap_key, "port")) {
-                                const char *v = ogs_yaml_iter_value(&ngap_iter);
+                                const char *v = ogs_yaml_iter_value(&control_iter);
                                 if (v) port = atoi(v);
                             } else if (!strcmp(ngap_key, "dev")) {
-                                dev = ogs_yaml_iter_value(&ngap_iter);
+                                dev = ogs_yaml_iter_value(&control_iter);
                             } else if (!strcmp(ngap_key, "option")) {
                                 rv = ogs_app_config_parse_sockopt(
-                                        &ngap_iter, &option);
+                                        &control_iter, &option);
                                 if (rv != OGS_OK) return rv;
                                 is_option = true;
                             } else
@@ -446,7 +446,7 @@ int amf_context_parse_config(void)
                         //     ogs_assert(rv == OGS_OK);
                         // }
 
-                    } while (ogs_yaml_iter_type(&ngap_array) ==
+                    } while (ogs_yaml_iter_type(&control_array) ==
                             YAML_SEQUENCE_NODE);
 
                     // if (ogs_list_first(&self.ngap_list) == NULL &&

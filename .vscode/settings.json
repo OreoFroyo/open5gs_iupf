@@ -9,6 +9,8 @@
         "xutility": "c",
         "typeinfo": "c",
         "sbi-path.h": "c",
-        "nas-security.h": "c"
+        "nas-security.h": "c",
+        "ngap-path.h": "c",
+        "context.h": "c"
     }
 }

@@ -32,7 +32,7 @@ extern "C" {
 
 int controller_open(void);
 void controller_close(void);
-ogs_sock_t *controller_server(ogs_socknode_t *node)
+ogs_sock_t *controller_server(ogs_socknode_t *node);
 int ngap_open(void);
 void ngap_close(void);
 

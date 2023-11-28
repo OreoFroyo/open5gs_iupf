@@ -18,7 +18,7 @@
  */
 
 #include "ogs-sctp.h"
-
+#include "context.h"
 #include "ngap-path.h"
 
 #if HAVE_USRSCTP
@@ -96,13 +96,12 @@ static void lksctp_accept_handler(short when, ogs_socket_t fd, void *data)
 #endif
 
 void controller_handler(ogs_sock_t *sock) {
-     int len;
+    int len;
     ssize_t size;
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
     ogs_info("controller_handler");
-    upf_sess_t *sess = NULL;
-
+    char buf[OGS_ADDRSTRLEN];
     ogs_pkbuf_t *pkbuf = NULL;
     ogs_sock_t *sock = NULL;
     ogs_sockaddr_t from;
@@ -112,15 +111,12 @@ void controller_handler(ogs_sock_t *sock) {
 
     uint32_t teid;
     uint8_t qfi;
-
-    ogs_assert(fd != INVALID_SOCKET);
     sock = data;
     ogs_assert(sock);
 
-    pkbuf = ogs_pkbuf_alloc(packet_pool, OGS_MAX_PKT_LEN);
+    pkbuf = ogs_pkbuf_alloc(NULL, OGS_MAX_SDU_LEN);
     ogs_assert(pkbuf);
-    ogs_pkbuf_reserve(pkbuf, OGS_TUN_MAX_HEADROOM);
-    ogs_pkbuf_put(pkbuf, OGS_MAX_PKT_LEN-OGS_TUN_MAX_HEADROOM);
+    ogs_pkbuf_put(pkbuf, OGS_MAX_SDU_LEN);
     // 从socket接收一个报文到缓冲区pkbuf
     size = ogs_recvfrom(fd, pkbuf->data, pkbuf->len, 0, &from);
     if (size <= 0) {
