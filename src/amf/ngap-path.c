@@ -26,7 +26,6 @@
 #include "nas-security.h"
 #include "nas-path.h"
 #include "sbi-path.h"
-#include "ngap-sctp.c"
 #include "ngap-handler.h"
 int controller_open(void) {
     ogs_socknode_t *node = NULL;

@@ -2957,12 +2957,16 @@ void ngap_handle_location_report(
     ogs_assert(initiatingMessage);
     PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
     ogs_assert(PathSwitchRequest);
-
+    ogs_ngap_message_t * new_message = MALLOC(sizeof(message));
+    new_message = message;
+    ogs_ngap_message_t * new_initialmessage = MALLOC(sizeof(NGAP_InitiatingMessage_t));
+    new_initialmessage = initiatingMessage;
+    new_message->choice.initiatingMessage = new_initialmessage;
     ogs_info("Loacation Report");
     ogs_app()->controller_stored.exist = 1;
     ogs_app()->controller_stored.gnb = gnb;
     ogs_app()->controller_stored.message = message;
-     ogs_info("gnb and message stored ");
+    ogs_info("gnb and message stored ");
    
 }
 
