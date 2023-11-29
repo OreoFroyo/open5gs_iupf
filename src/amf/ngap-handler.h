@@ -63,7 +63,7 @@ void ngap_handle_uplink_ran_configuration_transfer(
 void ngap_handle_path_switch_request(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_location_report(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message);
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf);
 void ngap_handle_handover_required(
         amf_gnb_t *gnb, ogs_ngap_message_t *message);
 void ngap_handle_handover_request_ack(

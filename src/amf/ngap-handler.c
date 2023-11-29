@@ -2944,9 +2944,9 @@ void ngap_handle_path_switch_request(
 
 
 void ngap_handle_location_report(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
 {
-    
+    rc = ogs_ngap_decode(&ngap_message, pkbuf);
     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
     NGAP_PathSwitchRequest_t *PathSwitchRequest = NULL;
     ogs_assert(gnb);
@@ -2958,16 +2958,19 @@ void ngap_handle_location_report(
     PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
     ogs_assert(PathSwitchRequest);
     ogs_ngap_message_t * new_message = MALLOC(sizeof(*message));
-    ogs_info("message size:%d",sizeof(*message));
-    memcpy(new_message,message,sizeof(*message));
+    ogs_info("message size:%lu",sizeof(*message));
+    // memcpy(new_message,message,sizeof(*message));
 
-    NGAP_InitiatingMessage_t * new_initialmessage = MALLOC(sizeof(NGAP_InitiatingMessage_t));
-    memcpy(new_initialmessage,initiatingMessage,sizeof(*initiatingMessage));
-    new_message->choice.initiatingMessage = new_initialmessage;
+    // NGAP_InitiatingMessage_t * new_initialmessage = MALLOC(sizeof(NGAP_InitiatingMessage_t));
+    // memcpy(new_initialmessage,initiatingMessage,sizeof(*initiatingMessage));
+    // new_message->choice.initiatingMessage = new_initialmessage;
+    ogs_ngap_decode(&new_message, pkbuf);
     ogs_info("Loacation Report");
     ogs_app()->controller_stored.exist = 1;
     ogs_app()->controller_stored.gnb = gnb;
-    ogs_app()->controller_stored.message = message;
+    
+    ogs_app()->controller_stored.message = new_message;
+    message = NULL;
     ogs_info("gnb and message stored ");
    
 }
