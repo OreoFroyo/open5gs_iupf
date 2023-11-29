@@ -2946,7 +2946,6 @@ void ngap_handle_path_switch_request(
 void ngap_handle_location_report(
         amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
 {
-    rc = ogs_ngap_decode(&ngap_message, pkbuf);
     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
     NGAP_PathSwitchRequest_t *PathSwitchRequest = NULL;
     ogs_assert(gnb);
