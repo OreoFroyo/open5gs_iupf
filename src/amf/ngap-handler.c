@@ -636,7 +636,7 @@ void ngap_handle_uplink_nas_transport(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-    ogs_log("AMF_UE_NGAP_ID: %lu",amf_ue_ngap_id);
+    ogs_log("AMF_UE_NGAP_ID: %llu",amf_ue_ngap_id);
     if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
                 (unsigned long *)&amf_ue_ngap_id) != 0) {
         ogs_error("Invalid AMF_UE_NGAP_ID");
