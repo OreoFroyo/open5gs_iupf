@@ -2717,14 +2717,14 @@ void ngap_handle_path_switch_request(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-    ogs_info("AMF UE ID:size %d",AMF_UE_NGAP_ID->size);
+    ogs_info("AMF UE ID:size %ld",AMF_UE_NGAP_ID->size);
     for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
         ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
     }
     if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
                 (unsigned long *)&amf_ue_ngap_id) != 0) {
         ogs_error("Invalid AMF_UE_NGAP_ID");
-        r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
+        r = ngap_send_error_indication(gnb, (uint32_t *)AMF_UE_NGAP_ID, NULL,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
@@ -2981,13 +2981,14 @@ void ngap_handle_location_report(
 
     if (!AMF_UE_NGAP_ID) {
         ogs_error("No AMF_UE_NGAP_ID");
-        r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
+        int r=0;
+        r = ngap_send_error_indication(gnb, (uint32_t *)AMF_UE_NGAP_ID, NULL,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
         return;
     }
-    ogs_info("AMF UE ID:size %d",AMF_UE_NGAP_ID->size);
+    ogs_info("AMF UE ID:size %ld",AMF_UE_NGAP_ID->size);
     for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
         ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
     }
@@ -3014,13 +3015,14 @@ void ngap_handle_location_report(
 
     if (!AMF_UE_NGAP_ID) {
         ogs_error("No AMF_UE_NGAP_ID");
-        r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
+        int r = 0;
+        r = ngap_send_error_indication(gnb, (uint32_t *)AMF_UE_NGAP_ID, NULL,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);
         return;
     }
-    ogs_info("new AMF UE ID:size %d",AMF_UE_NGAP_ID->size);
+    ogs_info("new AMF UE ID:size %ld",AMF_UE_NGAP_ID->size);
     for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
         ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
     }
