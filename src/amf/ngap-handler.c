@@ -2626,7 +2626,7 @@ void ngap_handle_uplink_ran_configuration_transfer(
 }
 
 void ngap_handle_path_switch_request(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i, r;
@@ -2641,6 +2641,7 @@ void ngap_handle_path_switch_request(
     NGAP_PathSwitchRequestIEs_t *ie = NULL;
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
+    NGAP_AMF_UE_NGAP_ID_t *Beforehandover = NULL;
     NGAP_UserLocationInformation_t *UserLocationInformation = NULL;
     NGAP_UserLocationInformationNR_t *UserLocationInformationNR = NULL;
     NGAP_UESecurityCapabilities_t *UESecurityCapabilities = NULL;
@@ -2681,6 +2682,10 @@ void ngap_handle_path_switch_request(
         case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
             AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
             break;
+        case NGAP_ProtocolIE_ID_id_AMF_UE_NGAP_ID:
+            Beforehandover = &ie->value.choice.AMF_UE_NGAP_ID;
+            //handle beforehandover message
+            break;
         case NGAP_ProtocolIE_ID_id_UserLocationInformation:
             UserLocationInformation = &ie->value.choice.UserLocationInformation;
             break;
@@ -2694,6 +2699,28 @@ void ngap_handle_path_switch_request(
         default:
             break;
         }
+    }
+    if(Beforehandover){
+        ogs_assert(gnb);
+        ogs_assert(gnb->sctp.sock);
+        NGAP_PathSwitchRequestIEs_t *ie = NULL;
+        NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
+        ogs_assert(message);
+        ogs_ngap_message_t * new_message = MALLOC(sizeof(*message));
+        ogs_info("message size:%lu",sizeof(*message));
+        
+        ogs_ngap_decode(new_message, pkbuf);
+        ogs_info("Loacation Report");
+        ogs_app()->controller_stored.exist = 1;
+        ogs_app()->controller_stored.gnb = gnb;
+        
+        ogs_app()->controller_stored.message = new_message;
+        ogs_assert(new_message);
+        initiatingMessage = new_message->choice.initiatingMessage;
+        ogs_assert(initiatingMessage);
+        PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
+        ogs_info("gnb and message stored ");
+        return ;
     }
 
     ogs_debug("    IP[%s] RAN_ID[%d]",
@@ -2961,36 +2988,7 @@ void ngap_handle_location_report(
     ogs_assert(PathSwitchRequest);
     ogs_ngap_message_t * new_message = MALLOC(sizeof(*message));
     ogs_info("message size:%lu",sizeof(*message));
-    // memcpy(new_message,message,sizeof(*message));
-
-    // NGAP_InitiatingMessage_t * new_initialmessage = MALLOC(sizeof(NGAP_InitiatingMessage_t));
-    // memcpy(new_initialmessage,initiatingMessage,sizeof(*initiatingMessage));
-    // new_message->choice.initiatingMessage = new_initialmessage;
     
-    for (int i = 0; i < PathSwitchRequest->protocolIEs.list.count; i++) {
-        ie = PathSwitchRequest->protocolIEs.list.array[i];
-        switch (ie->id) {
-        case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
-            AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
-            break;
-        default:
-            break;
-        }
-    }
-
-    if (!AMF_UE_NGAP_ID) {
-        ogs_error("No AMF_UE_NGAP_ID");
-        int r=0;
-        r = ngap_send_error_indication(gnb, (uint32_t *)AMF_UE_NGAP_ID, NULL,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
-    ogs_info("AMF UE ID:size %ld",AMF_UE_NGAP_ID->size);
-    for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
-        ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
-    }
     ogs_ngap_decode(new_message, pkbuf);
     ogs_info("Loacation Report");
     ogs_app()->controller_stored.exist = 1;
@@ -3001,30 +2999,8 @@ void ngap_handle_location_report(
     initiatingMessage = new_message->choice.initiatingMessage;
     ogs_assert(initiatingMessage);
     PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
-    for (int i = 0; i < PathSwitchRequest->protocolIEs.list.count; i++) {
-        ie = PathSwitchRequest->protocolIEs.list.array[i];
-        switch (ie->id) {
-        case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
-            AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
-            break;
-        default:
-            break;
-        }
-    }
 
-    if (!AMF_UE_NGAP_ID) {
-        ogs_error("No AMF_UE_NGAP_ID");
-        int r = 0;
-        r = ngap_send_error_indication(gnb, (uint32_t *)AMF_UE_NGAP_ID, NULL,
-                NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
-        ogs_expect(r == OGS_OK);
-        ogs_assert(r != OGS_ERROR);
-        return;
-    }
-    ogs_info("new AMF UE ID:size %ld",AMF_UE_NGAP_ID->size);
-    for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
-        ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
-    }
+
     ogs_info("gnb and message stored ");
    
 }

@@ -3375,7 +3375,7 @@ typedef struct NGAP_PathSwitchRequestIEs {
 			NGAP_PDUSessionResourceToBeSwitchedDLList_t	 PDUSessionResourceToBeSwitchedDLList;
 			NGAP_PDUSessionResourceFailedToSetupListPSReq_t	 PDUSessionResourceFailedToSetupListPSReq;
 			NGAP_RRCEstablishmentCause_t	 RRCEstablishmentCause;
-			NGAP_RedCapIndication_t	 RedCapIndication;
+			NGAP_RedCapIndication_t	 RedCapIndication;   
 		} choice;
 		
 		/* Context for parsing across buffer boundaries */
