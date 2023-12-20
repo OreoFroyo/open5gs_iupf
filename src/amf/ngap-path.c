@@ -89,7 +89,7 @@ void controller_handler(short when, ogs_socket_t fd, void *data) {
     ogs_assert(pkbuf);
     ogs_assert(pkbuf->len);
     ogs_info("yes!yes!yes!");
-    ngap_handle_path_switch_request(ogs_app()->controller_stored.gnb, ogs_app()->controller_stored.message);
+    ngap_handle_path_switch_request(ogs_app()->controller_stored.gnb, ogs_app()->controller_stored.message,pkbuf);
     // if (gtp_h->version != OGS_GTP2_VERSION_1) {
     //     ogs_error("[DROP] Invalid GTPU version [%d]", gtp_h->version);
     //     ogs_log_hexdump(OGS_LOG_ERROR, pkbuf->data, pkbuf->len);

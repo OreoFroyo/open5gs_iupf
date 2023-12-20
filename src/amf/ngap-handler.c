@@ -2681,8 +2681,17 @@ void ngap_handle_path_switch_request(
             break;
         case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
             AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
+            for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
+                ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
+            } 
+            if(AMF_UE_NGAP_ID->size == 4){
+                AMF_UE_NGAP_ID->buf[0] = AMF_UE_NGAP_ID->buf[3];
+                AMF_UE_NGAP_ID->size = 1;
+                Beforehandover = AMF_UE_NGAP_ID;
+            }
             break;
         case NGAP_ProtocolIE_ID_id_AMF_UE_NGAP_ID:
+            ogs_info("Beforehandover used!");
             Beforehandover = &ie->value.choice.AMF_UE_NGAP_ID;
             //handle beforehandover message
             break;
@@ -2700,11 +2709,10 @@ void ngap_handle_path_switch_request(
             break;
         }
     }
+    ogs_info("Beforehandover.size: %ld",Beforehandover->size);
     if(Beforehandover){
         ogs_assert(gnb);
         ogs_assert(gnb->sctp.sock);
-        NGAP_PathSwitchRequestIEs_t *ie = NULL;
-        NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
         ogs_assert(message);
         ogs_ngap_message_t * new_message = MALLOC(sizeof(*message));
         ogs_info("message size:%lu",sizeof(*message));
@@ -2972,38 +2980,38 @@ void ngap_handle_path_switch_request(
 }
 
 
-void ngap_handle_location_report(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
-{
-    NGAP_InitiatingMessage_t *initiatingMessage = NULL;
-    NGAP_PathSwitchRequest_t *PathSwitchRequest = NULL;
-    ogs_assert(gnb);
-    ogs_assert(gnb->sctp.sock);
-    NGAP_PathSwitchRequestIEs_t *ie = NULL;
-    NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
-    ogs_assert(message);
-    initiatingMessage = message->choice.initiatingMessage;
-    ogs_assert(initiatingMessage);
-    PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
-    ogs_assert(PathSwitchRequest);
-    ogs_ngap_message_t * new_message = MALLOC(sizeof(*message));
-    ogs_info("message size:%lu",sizeof(*message));
+// void ngap_handle_location_report(
+//         amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
+// {
+//     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
+//     NGAP_PathSwitchRequest_t *PathSwitchRequest = NULL;
+//     ogs_assert(gnb);
+//     ogs_assert(gnb->sctp.sock);
+//     NGAP_PathSwitchRequestIEs_t *ie = NULL;
+//     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
+//     ogs_assert(message);
+//     initiatingMessage = message->choice.initiatingMessage;
+//     ogs_assert(initiatingMessage);
+//     PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
+//     ogs_assert(PathSwitchRequest);
+//     ogs_ngap_message_t * new_message = MALLOC(sizeof(*message));
+//     ogs_info("message size:%lu",sizeof(*message));
     
-    ogs_ngap_decode(new_message, pkbuf);
-    ogs_info("Loacation Report");
-    ogs_app()->controller_stored.exist = 1;
-    ogs_app()->controller_stored.gnb = gnb;
+//     ogs_ngap_decode(new_message, pkbuf);
+//     ogs_info("Loacation Report");
+//     ogs_app()->controller_stored.exist = 1;
+//     ogs_app()->controller_stored.gnb = gnb;
     
-    ogs_app()->controller_stored.message = new_message;
-    ogs_assert(new_message);
-    initiatingMessage = new_message->choice.initiatingMessage;
-    ogs_assert(initiatingMessage);
-    PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
+//     ogs_app()->controller_stored.message = new_message;
+//     ogs_assert(new_message);
+//     initiatingMessage = new_message->choice.initiatingMessage;
+//     ogs_assert(initiatingMessage);
+//     PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
 
 
-    ogs_info("gnb and message stored ");
+//     ogs_info("gnb and message stored ");
    
-}
+// }
 
 
 void ngap_handle_handover_required(

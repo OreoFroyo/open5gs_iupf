@@ -43,7 +43,6 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
 
     amf_gnb_t *gnb = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
-
     NGAP_NGAP_PDU_t *pdu = NULL;
     NGAP_InitiatingMessage_t *initiatingMessage = NULL;
     NGAP_SuccessfulOutcome_t *successfulOutcome = NULL;
@@ -94,13 +93,15 @@ void ngap_state_operational(ogs_fsm_t *s, amf_event_t *e)
             case NGAP_ProcedureCode_id_UEContextReleaseRequest:
                 ngap_handle_ue_context_release_request( gnb, pdu);
                 break;
-            case NGAP_ProcedureCode_id_LocationReport:
+            // case NGAP_ProcedureCode_id_LocationReport:
+            //     pkbuf = e->pkbuf;
+            //     ogs_assert(pkbuf);
+            //     ngap_handle_location_report(gnb,pdu,pkbuf);
+            //     break; 
+            case NGAP_ProcedureCode_id_PathSwitchRequest:
                 pkbuf = e->pkbuf;
                 ogs_assert(pkbuf);
-                ngap_handle_location_report(gnb,pdu,pkbuf);
-                break; 
-            case NGAP_ProcedureCode_id_PathSwitchRequest:
-                ngap_handle_path_switch_request(gnb, pdu);
+                ngap_handle_path_switch_request(gnb, pdu, pkbuf);
                 break;
             case NGAP_ProcedureCode_id_UplinkRANConfigurationTransfer:
                 pkbuf = e->pkbuf;
