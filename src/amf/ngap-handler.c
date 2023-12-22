@@ -2711,7 +2711,6 @@ void ngap_handle_path_switch_request(
             break;
         }
     }
-    ogs_info("Beforehandover.size: %ld",Beforehandover->size);
     if(Beforehandover){
         ogs_assert(gnb);
         ogs_assert(gnb->sctp.sock);
@@ -2729,6 +2728,21 @@ void ngap_handle_path_switch_request(
         initiatingMessage = new_message->choice.initiatingMessage;
         ogs_assert(initiatingMessage);
         PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
+        for (i = 0; i < PathSwitchRequest->protocolIEs.list.count; i++) {
+            ie = PathSwitchRequest->protocolIEs.list.array[i];
+            switch (ie->id) {
+            case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
+                ogs_info("modify SourceAMF");
+                AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
+                if(AMF_UE_NGAP_ID->size == 4){
+                    AMF_UE_NGAP_ID->buf[0] = AMF_UE_NGAP_ID->buf[3];
+                    AMF_UE_NGAP_ID->size = 1;
+                }
+                break;
+            default:
+                break;
+        }
+    }   
         ogs_info("gnb and message stored ");
         return ;
     }
