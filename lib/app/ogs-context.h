@@ -187,7 +187,11 @@ typedef struct ogs_app_context_s {
             const char *key;
         } server, client;
     } sbi;
-
+    struct {
+        int exist;
+        void  *gnb;
+        void *message;
+    } controller_stored;
 } ogs_app_context_t;
 
 int ogs_app_context_init(void);

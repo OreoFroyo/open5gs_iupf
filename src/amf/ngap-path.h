@@ -86,6 +86,7 @@ int ngap_send_error_indication2(
 int ngap_send_ng_reset_ack(
         amf_gnb_t *gnb,
         NGAP_UE_associatedLogicalNG_connectionList_t *partOfNG_Interface);
+void controller_handler(short when, ogs_socket_t fd, void *data);
 
 #ifdef __cplusplus
 }

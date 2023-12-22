@@ -116,6 +116,7 @@ typedef struct amf_context_s {
     ogs_list_t      ngap_list;      /* AMF NGAP IPv4 Server List */
     ogs_list_t      ngap_list6;     /* AMF NGAP IPv6 Server List */
 
+    ogs_list_t      controller_list;
     struct {
         struct {
             ogs_time_t value;       /* Timer Value(Seconds) */

@@ -2626,8 +2626,9 @@ void ngap_handle_uplink_ran_configuration_transfer(
     }
 }
 
+
 void ngap_handle_path_switch_request(
-        amf_gnb_t *gnb, ogs_ngap_message_t *message)
+        amf_gnb_t *gnb, ogs_ngap_message_t *message, ogs_pkbuf_t *pkbuf)
 {
     char buf[OGS_ADDRSTRLEN];
     int i, r;
@@ -2642,6 +2643,7 @@ void ngap_handle_path_switch_request(
     NGAP_PathSwitchRequestIEs_t *ie = NULL;
     NGAP_RAN_UE_NGAP_ID_t *RAN_UE_NGAP_ID = NULL;
     NGAP_AMF_UE_NGAP_ID_t *AMF_UE_NGAP_ID = NULL;
+    NGAP_AMF_UE_NGAP_ID_t *Beforehandover = NULL;
     NGAP_UserLocationInformation_t *UserLocationInformation = NULL;
     NGAP_UserLocationInformationNR_t *UserLocationInformationNR = NULL;
     NGAP_UESecurityCapabilities_t *UESecurityCapabilities = NULL;
@@ -2681,6 +2683,19 @@ void ngap_handle_path_switch_request(
             break;
         case NGAP_ProtocolIE_ID_id_SourceAMF_UE_NGAP_ID:
             AMF_UE_NGAP_ID = &ie->value.choice.AMF_UE_NGAP_ID;
+            for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
+                ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
+            } 
+            if(AMF_UE_NGAP_ID->size == 4){
+                AMF_UE_NGAP_ID->buf[0] = AMF_UE_NGAP_ID->buf[3];
+                AMF_UE_NGAP_ID->size = 1;
+                Beforehandover = AMF_UE_NGAP_ID;
+            }
+            break;
+        case NGAP_ProtocolIE_ID_id_AMF_UE_NGAP_ID:
+            ogs_info("Beforehandover used!");
+            Beforehandover = &ie->value.choice.AMF_UE_NGAP_ID;
+            //handle beforehandover message
             break;
         case NGAP_ProtocolIE_ID_id_UserLocationInformation:
             UserLocationInformation = &ie->value.choice.UserLocationInformation;
@@ -2696,6 +2711,27 @@ void ngap_handle_path_switch_request(
             break;
         }
     }
+    ogs_info("Beforehandover.size: %ld",Beforehandover->size);
+    if(Beforehandover){
+        ogs_assert(gnb);
+        ogs_assert(gnb->sctp.sock);
+        ogs_assert(message);
+        ogs_ngap_message_t * new_message = MALLOC(sizeof(*message));
+        ogs_info("message size:%lu",sizeof(*message));
+        
+        ogs_ngap_decode(new_message, pkbuf);
+        ogs_info("Loacation Report");
+        ogs_app()->controller_stored.exist = 1;
+        ogs_app()->controller_stored.gnb = gnb;
+        
+        ogs_app()->controller_stored.message = new_message;
+        ogs_assert(new_message);
+        initiatingMessage = new_message->choice.initiatingMessage;
+        ogs_assert(initiatingMessage);
+        PathSwitchRequest = &initiatingMessage->value.choice.PathSwitchRequest;
+        ogs_info("gnb and message stored ");
+        return ;
+    }
 
     ogs_debug("    IP[%s] RAN_ID[%d]",
             OGS_ADDR(gnb->sctp.addr, buf), gnb->gnb_id);
@@ -2708,7 +2744,7 @@ void ngap_handle_path_switch_request(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-
+    
     if (!AMF_UE_NGAP_ID) {
         ogs_error("No AMF_UE_NGAP_ID");
         r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
@@ -2717,11 +2753,14 @@ void ngap_handle_path_switch_request(
         ogs_assert(r != OGS_ERROR);
         return;
     }
-
+    ogs_info("AMF UE ID:size %ld",AMF_UE_NGAP_ID->size);
+    for (int i=0;i<AMF_UE_NGAP_ID->size;i++){
+        ogs_info("%d:%d",i,AMF_UE_NGAP_ID->buf[i]);
+    }
     if (asn_INTEGER2ulong(AMF_UE_NGAP_ID,
                 (unsigned long *)&amf_ue_ngap_id) != 0) {
         ogs_error("Invalid AMF_UE_NGAP_ID");
-        r = ngap_send_error_indication(gnb, (uint32_t *)RAN_UE_NGAP_ID, NULL,
+        r = ngap_send_error_indication(gnb, (uint32_t *)AMF_UE_NGAP_ID, NULL,
                 NGAP_Cause_PR_protocol, NGAP_CauseProtocol_semantic_error);
         ogs_expect(r == OGS_OK);
         ogs_assert(r != OGS_ERROR);

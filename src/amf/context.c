@@ -342,6 +342,101 @@ int amf_context_parse_config(void)
                                 NULL, self.ngap_port, NULL);
                         ogs_assert(rv == OGS_OK);
                     }
+                } else if (!strcmp(amf_key, "control")) {
+                    ogs_yaml_iter_t control_array, control_iter;
+                    ogs_yaml_iter_recurse(&amf_iter, &control_array);
+                    do {
+                        int family = AF_UNSPEC;
+                        int i, num = 0;
+                        const char *hostname[OGS_MAX_NUM_OF_HOSTNAME];
+                        uint16_t port = 38413;
+                        ogs_sockaddr_t *addr = NULL;
+
+                        ogs_sockopt_t option;
+                        bool is_option = false;
+
+                        if (ogs_yaml_iter_type(&control_array) ==
+                                YAML_MAPPING_NODE) {
+                            memcpy(&control_iter, &control_array,
+                                    sizeof(ogs_yaml_iter_t));
+                        } else if (ogs_yaml_iter_type(&control_array) ==
+                            YAML_SEQUENCE_NODE) {
+                            if (!ogs_yaml_iter_next(&control_array))
+                                break;
+                            ogs_yaml_iter_recurse(&control_array, &control_iter);
+                        } else if (ogs_yaml_iter_type(&control_array) ==
+                            YAML_SCALAR_NODE) {
+                            break;
+                        } else
+                            ogs_assert_if_reached();
+
+                        while (ogs_yaml_iter_next(&control_iter)) {
+                            const char *ngap_key =
+                                ogs_yaml_iter_key(&control_iter);
+                            ogs_assert(ngap_key);
+                            if (!strcmp(ngap_key, "family")) {
+                                const char *v = ogs_yaml_iter_value(&control_iter);
+                                if (v) family = atoi(v);
+                                if (family != AF_UNSPEC &&
+                                    family != AF_INET && family != AF_INET6) {
+                                    ogs_warn("Ignore family(%d) : "
+                                        "AF_UNSPEC(%d), "
+                                        "AF_INET(%d), AF_INET6(%d) ",
+                                        family, AF_UNSPEC, AF_INET, AF_INET6);
+                                    family = AF_UNSPEC;
+                                }
+                            } else if (!strcmp(ngap_key, "addr") ||
+                                    !strcmp(ngap_key, "name")) {
+                                ogs_yaml_iter_t hostname_iter;
+                                ogs_yaml_iter_recurse(
+                                        &control_iter, &hostname_iter);
+                                ogs_assert(ogs_yaml_iter_type(&hostname_iter) !=
+                                    YAML_MAPPING_NODE);
+
+                                do {
+                                    if (ogs_yaml_iter_type(&hostname_iter) ==
+                                            YAML_SEQUENCE_NODE) {
+                                        if (!ogs_yaml_iter_next(&hostname_iter))
+                                            break;
+                                    }
+
+                                    ogs_assert(num < OGS_MAX_NUM_OF_HOSTNAME);
+                                    hostname[num++] =
+                                        ogs_yaml_iter_value(&hostname_iter);
+                                } while (
+                                    ogs_yaml_iter_type(&hostname_iter) ==
+                                        YAML_SEQUENCE_NODE);
+                            } else if (!strcmp(ngap_key, "port")) {
+                                const char *v = ogs_yaml_iter_value(&control_iter);
+                                if (v) port = atoi(v);
+                            } else if (!strcmp(ngap_key, "option")) {
+                                rv = ogs_app_config_parse_sockopt(
+                                        &control_iter, &option);
+                                if (rv != OGS_OK) return rv;
+                                is_option = true;
+                            } else
+                                ogs_warn("unknown key `%s`", ngap_key);
+                        }
+
+                        addr = NULL;
+                        for (i = 0; i < num; i++) {
+                            rv = ogs_addaddrinfo(&addr,
+                                    family, hostname[i], port, 0);
+                            ogs_assert(rv == OGS_OK);
+                        }
+
+                        if (addr) {
+                            ogs_socknode_add(
+                                &self.controller_list, AF_INET, addr,
+                                is_option ? &option : NULL);
+                            ogs_freeaddrinfo(addr);
+                        }
+
+                    } while (ogs_yaml_iter_type(&control_array) ==
+                            YAML_SEQUENCE_NODE);
+                    
+                
+                
                 } else if (!strcmp(amf_key, "guami")) {
                     ogs_yaml_iter_t guami_array, guami_iter;
                     ogs_yaml_iter_recurse(&amf_iter, &guami_array);

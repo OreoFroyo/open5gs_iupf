@@ -58,6 +58,9 @@ int amf_initialize(void)
     rv = ngap_open();
     if (rv != OGS_OK) return rv;
 
+    rv = controller_open();
+    if (rv != OGS_OK) return rv;
+    
     thread = ogs_thread_create(amf_main, NULL);
     if (!thread) return OGS_ERROR;
 
