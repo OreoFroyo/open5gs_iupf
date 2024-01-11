@@ -1,30 +1,40 @@
-<p align="center"><a href="https://open5gs.org" target="_blank" rel="noopener noreferrer"><img width="100" src="https://open5gs.org/assets/img/open5gs-logo-only.png" alt="Open5GS logo"></a></p>
+## Overview
 
-## Getting Started
+To move UPF onto satellites, we plan to refer to the 3GPP specifications for I-UPF, implementing an I-UPF designed for operation above satellites, also known as S-UPF (Satellite UPF). 
 
-Please follow the [documentation](https://open5gs.org/open5gs/docs/) at [open5gs.org](https://open5gs.org/)!
+The preliminary functionality of this UPF involves removing anchor point capabilities, retaining only routing decision functions, allowing for advanced traffic pre-routing.
 
-## Sponsors
+To achieve this objective, we have extended the codebase of Open5GS, including the implementation of I-UPF code, as well as modifications to the core network and access network processes.
 
-If you find Open5GS useful for work, please consider supporting this Open Source project by [Becoming a sponsor](https://github.com/sponsors/acetcom). To manage the funding transactions transparently, you can donate through [OpenCollective](https://opencollective.com/open5gs).
+Open5GS is a C-language Open Source implementation of 5G Core and EPC. (https://github.com/open5gs/open5gs)
+
+
+## Core network modification
 
 <p align="center">
-  <a target="_blank" href="https://open5gs.org/#sponsors">
-      <img alt="sponsors" src="https://open5gs.org/assets/img/sponsors.svg">
-  </a>
+  <a href="https://github.com/OreoFroyo/open5gs_iupf"><img src="/.github/I-UPF.png" width="900" title="I-UPF"></a>
 </p>
 
-## Community
+Specifically, we made the following modifications to Open5GS:
 
-- Problem with Open5GS can be filed as [issues](https://github.com/open5gs/open5gs/issues) in this repository.
-- Other topics related to this project are happening on the [discussions](https://github.com/open5gs/open5gs/discussions).
-- Voice and text chat are available in Open5GS's [Discord](https://discordapp.com/) workspace. Use [this link](https://discord.gg/GreNkuc) to get started.
+- Introduced a new I-UPF network function, with its initialization processes aligned with other network functions in Open5GS.
+- Implemented the N9 interface.
+- Modified the session establishment process in the SMF, adding storage for relevant I-UPF fields and introducing a selection mechanism during session establishment.
 
-## Contributing
+## Usage
 
-If you're contributing through a pull request to Open5GS project on GitHub, please read the [Contributor License Agreement](https://open5gs.org/open5gs/cla/) in advance.
+In open5gs, starting projects through quickstart and building from source is supported. **Currently, our project only supports building from source compilation.**
 
-## License
+Use at least three VMS: one running UE and gnb (UERANSIM is recommended), one running I-UPF, and one running core network (UPF and I-UPF cannot run on the same VM, which may cause IP conflict).
 
-- Open5GS Open Source files are made available under the terms of the GNU Affero General Public License ([GNU AGPL v3.0](https://www.gnu.org/licenses/agpl-3.0.html)).
-- [Commercial licenses](https://open5gs.org/open5gs/support/) are also available from [NeoPlane](https://neoplane.io/)
+Configuration file modification:
+
+The format of the I-UPF config file is the same as that of UPF, so it follows the UPF modification method.
+For other NFs modifications, refer to the open5gs official website. You only need to modify the SMF.config additionally:
+```
+upf:
+    pfcp:
+      - addr: 192.168.247.001 (your UPF address)
+    ipfcp:
+      - addr: 192.168.247.002 (your I-UPF address)
+```
