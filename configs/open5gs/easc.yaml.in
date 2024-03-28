@@ -1,0 +1,39 @@
+#
+#  o Set OGS_LOG_INFO to all domain level
+#   - If `level` is omitted, the default level is OGS_LOG_INFO)
+#   - If `domain` is omitted, the all domain level is set from 'level'
+#    (Default values are used, so no configuration is required)
+#
+#  o Set OGS_LOG_ERROR to all domain level
+#   - `level` can be set with none, fatal, error, warn, info, debug, trace
+#  logger:
+#    level: error
+#
+#  o Set OGS_LOG_DEBUG to mme/emm domain level
+#  logger:
+#    level: debug
+#    domain: mme,emm
+#
+#  o Set OGS_LOG_TRACE to all domain level
+#  logger:
+#    level: trace
+#    domain: core,sbi,ausf,event,tlv,mem,sock
+#
+logger:
+    file: @localstatedir@/log/open5gs/easc.log
+
+
+easc:
+    sbi:
+      - addr: 127.0.0.18
+        port: 7777
+    metrics:
+      - addr: 127.0.0.18
+        port: 9090
+
+scp:
+    sbi:
+      - addr: 127.0.1.10
+        port: 7777
+
+        

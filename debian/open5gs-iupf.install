@@ -1,4 +1,4 @@
 usr/bin/open5gs-iupfd
 configs/open5gs/iupf.yaml etc/open5gs
 configs/systemd/99-open5gs.net* etc/systemd/network
-configs/systemd/open5gs-upfd.service lib/systemd/system
+configs/systemd/open5gs-iupfd.service lib/systemd/system

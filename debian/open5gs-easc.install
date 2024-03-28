@@ -1,0 +1,5 @@
+usr/bin/open5gs-eascd
+configs/open5gs/easc.yaml etc/open5gs
+configs/systemd/99-open5gs.net* etc/systemd/network
+configs/systemd/open5gs-eascd.service lib/systemd/system
+
