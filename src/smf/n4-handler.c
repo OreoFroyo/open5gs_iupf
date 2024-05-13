@@ -26,6 +26,7 @@
 #include "sbi-path.h"
 #include "ngap-path.h"
 #include "fd-path.h"
+#include "build.h"
 
 uint8_t gtp_cause_from_pfcp(uint8_t pfcp_cause, uint8_t gtp_version)
 {
@@ -1473,4 +1474,248 @@ void smf_n4_handle_session_report_request(
                     0));
         }
     }
+}
+
+void smf_create_pdr_by_targetIp(smf_sess_t *sess, gtpu_id, targetIp){
+
+    ogs_pfcp_pdr_t *dl_pdr = NULL;
+    ogs_pfcp_pdr_t *ul_pdr = NULL;
+
+    ogs_pfcp_far_t *dl_far = NULL;
+    ogs_pfcp_far_t *ul_far = NULL;
+
+    ogs_pfcp_urr_t *urr = NULL;
+    ogs_pfcp_qer_t *qer = NULL;
+
+    dl_pdr = ogs_pfcp_pdr_add(&sess->ipfcp); //分配一个新的pdr对象
+    ogs_assert(dl_pdr);
+
+    ogs_assert(sess->session.name);
+    dl_pdr->apn = ogs_strdup(sess->session.name);
+    ogs_assert(dl_pdr->apn);
+
+    dl_pdr->src_if = OGS_PFCP_INTERFACE_CORE; 
+
+    ul_pdr = ogs_pfcp_pdr_add(&sess->ipfcp);
+    ogs_assert(ul_pdr);
+    // qos_flow->ul_pdr = ul_pdr;
+
+    ogs_assert(sess->session.name);
+    ul_pdr->apn = ogs_strdup(sess->session.name);
+    ogs_assert(ul_pdr->apn);
+
+    ul_pdr->src_if = OGS_PFCP_INTERFACE_ACCESS; //设置PDR的源接口为接入网,表示针对上行流量
+
+    ul_pdr->outer_header_removal_len = 2; //设置外部头部删除描述,长度为2字节
+    if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4) { //根据会话类型设置需要删除的外部头,如UDP/IPv4头
+        ul_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV4;
+    } else if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV6) {
+        ul_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IPV6;
+    } else if (sess->session.session_type == OGS_PDU_SESSION_TYPE_IPV4V6) {
+        ul_pdr->outer_header_removal.description =
+            OGS_PFCP_OUTER_HEADER_REMOVAL_GTPU_UDP_IP;
+    } else
+        ogs_assert_if_reached();
+    ul_pdr->outer_header_removal.gtpu_extheader_deletion =
+        OGS_PFCP_PDU_SESSION_CONTAINER_TO_BE_DELETED;
+
+
+    /* FAR */
+    dl_far = ogs_pfcp_far_add(&sess->ipfcp);
+    ogs_assert(dl_far);
+    // qos_flow->dl_far = dl_far;
+
+    ogs_assert(sess->session.name);
+    dl_far->apn = ogs_strdup(sess->session.name);
+    ogs_assert(dl_far->apn);
+
+    dl_far->dst_if = OGS_PFCP_INTERFACE_ACCESS;
+    // dl_far->dst_if_type[0] = 9;
+    // dl_far->dst_if_type[1] = 1;
+    ogs_pfcp_pdr_associate_far(dl_pdr, dl_far);
+
+    dl_far->apply_action =
+        OGS_PFCP_APPLY_ACTION_BUFF| OGS_PFCP_APPLY_ACTION_NOCP; //dl默认动作为缓存和不计费
+    ogs_assert(sess->ipfcp.bar);
+
+    ul_far = ogs_pfcp_far_add(&sess->ipfcp);
+    ogs_assert(ul_far);
+    // qos_flow->ul_far = ul_far;
+
+    ogs_assert(sess->session.name);
+    ul_far->apn = ogs_strdup(sess->session.name);
+    ogs_assert(ul_far->apn);
+
+
+    ul_far->dst_if = OGS_PFCP_INTERFACE_CORE;
+    // ul_far->dst_if_type[0] = 9;
+    // ul_far->dst_if_type[1] = 0;
+
+    ogs_pfcp_pdr_associate_far(ul_pdr, ul_far);
+
+    ul_far->apply_action = OGS_PFCP_APPLY_ACTION_FORW; //ul默认动作为转发
+    
+    /*
+    // URR
+    urr = ogs_pfcp_urr_add(&sess->ipfcp);
+    ogs_assert(urr);
+    // qos_flow->urr = urr;
+
+    urr->meas_method = OGS_PFCP_MEASUREMENT_METHOD_VOLUME;
+    urr->rep_triggers.volume_threshold = 1;
+    urr->vol_threshold.tovol = 1;
+    urr->vol_threshold.total_volume = 1024*1024*100;
+
+    ogs_pfcp_pdr_associate_urr(dl_pdr, urr);
+
+    // QER
+    qer = ogs_pfcp_qer_add(&sess->ipfcp);
+    ogs_assert(qer);
+    qos_flow->qer = qer;
+    */
+
+
+    /* Set UE IP Address to the Default DL PDR */  
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
+            &dl_pdr->ue_ip_addr, &dl_pdr->ue_ip_addr_len));
+    dl_pdr->ue_ip_addr.sd = OGS_PFCP_UE_IP_DST;
+
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_paa_to_ue_ip_addr(&sess->session.paa,
+            &ul_pdr->ue_ip_addr, &ul_pdr->ue_ip_addr_len));
+    
+    if (sess->session.ipv4_framed_routes &&
+        sess->pfcp_node->up_function_features.frrt) {
+        int i = 0;
+        for (i = 0; i < OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI; i++) {
+            const char *route = sess->session.ipv4_framed_routes[i];
+            if (!route) break;
+
+            if (!dl_pdr->ipv4_framed_routes) {
+                dl_pdr->ipv4_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(dl_pdr->ipv4_framed_routes[0]));
+                ogs_assert(dl_pdr->ipv4_framed_routes);
+            }
+            dl_pdr->ipv4_framed_routes[i] = ogs_strdup(route);
+
+            if (!ul_pdr->ipv4_framed_routes) {
+                ul_pdr->ipv4_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(ul_pdr->ipv4_framed_routes[0]));
+                ogs_assert(ul_pdr->ipv4_framed_routes);
+            }
+            ul_pdr->ipv4_framed_routes[i] = ogs_strdup(route);
+        }
+    }
+
+    if (sess->session.ipv6_framed_routes &&
+        sess->pfcp_node->up_function_features.frrt) {
+        int i = 0;
+        for (i = 0; i < OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI; i++) {
+            const char *route = sess->session.ipv6_framed_routes[i];
+            if (!route) break;
+
+            if (!dl_pdr->ipv6_framed_routes) {
+                dl_pdr->ipv6_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(dl_pdr->ipv6_framed_routes[0]));
+                ogs_assert(dl_pdr->ipv6_framed_routes);
+            }
+            dl_pdr->ipv6_framed_routes[i] = ogs_strdup(route);
+
+            if (!ul_pdr->ipv6_framed_routes) {
+                ul_pdr->ipv6_framed_routes =
+                    ogs_calloc(OGS_MAX_NUM_OF_FRAMED_ROUTES_IN_PDI,
+                               sizeof(ul_pdr->ipv6_framed_routes[0]));
+                ogs_assert(ul_pdr->ipv6_framed_routes);
+            }
+            ul_pdr->ipv6_framed_routes[i] = ogs_strdup(route);
+        }
+    }
+
+    ogs_info("PDRCreateByTargetIP：UE SUPI[%s] DNN[%s] IPv4[%s] IPv6[%s]",
+        smf_ue->supi, sess->session.name,
+        sess->ipv4 ? OGS_INET_NTOP(&sess->ipv4->addr, buf1) : "",
+        sess->ipv6 ? OGS_INET6_NTOP(&sess->ipv6->addr, buf2) : "");
+    
+    ul_pdr->f_teid.ipv4 = 1;
+    ul_pdr->f_teid.ipv6 = 1;
+    ul_pdr->f_teid.ch = 1;
+    ul_pdr->f_teid.chid = 1;
+    ul_pdr->f_teid.teid = sess->upf_n3_teid
+    ul_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
+    ul_pdr->f_teid_len = 5;    
+
+    // ip1 -> 目的UPF的ip 
+    ogs_assert(OGS_OK ==
+        ogs_pfcp_ip_to_outer_header_creation(
+            &ip1,
+            &ul_far->outer_header_creation,
+            &ul_far->outer_header_creation_len));
+        ul_far->outer_header_creation.teid = sess->upf_n9_teid;
+        ul_far->dst_if_type[0] = 9;
+    
+    ogs_ip_t iupf_ip;
+        ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
+
+        ogs_assert(OGS_OK ==
+        ogs_pfcp_ip_to_outer_header_creation(
+            &iupf_ip,
+            &dl_far_upf->outer_header_creation,
+            &dl_far_upf->outer_header_creation_len));
+        dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
+    
+    // !!!改为对应的N9 teid (可能有很多个id)
+    dl_pdr->f_teid.teid = sess->upf_n9_teid;
+
+    ogs_assert(OGS_OK ==
+            ogs_pfcp_sockaddr_to_f_teid(
+                sess->upf_n3_addr, sess->upf_n3_addr6,
+                &ul_pdr->f_teid, &ul_pdr->f_teid_len));
+        ul_pdr->f_teid.teid = sess->upf_n3_teid;
+
+    dl_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
+    ul_pdr->precedence = OGS_PFCP_DEFAULT_PDR_PRECEDENCE;
+
+    if(ul_pdr->teid) ogs_info("ul_pdr teid:[%x]",ul_pdr->teid);
+    if(dl_pdr->teid) ogs_info("dl_pdr teid:[%x]",dl_pdr->teid);
+    if(ul_pdr->f_teid.teid) ogs_info("ul_pdr->f_teid.teid:[%x]",ul_pdr->f_teid.teid);
+    if(dl_pdr->f_teid.teid) ogs_info("dl_pdr->f_teid.teid:[%x]",dl_pdr->f_teid.teid);
+
+    
+
+    // 以下注释转移到 smf_5gc_pfcp_send_one_pdr_create_request 中实现
+
+    // ogs_pfcp_pdr_t *dl_pdr_2 = NULL;
+    // ogs_pfcp_pdr_t *ul_pdr_2 = NULL;
+    // ogs_pfcp_far_t *dl_far_2 = NULL;
+    // ogs_pfcp_far_t *ul_far_2 = NULL;
+
+    // ogs_pfcp_urr_t *urr_2 = NULL;
+    // ogs_pfcp_qer_t *qer_2 = NULL;
+
+    // ogs_pfcp_build_create_pdr(ul_pdr_2,0,ul_pdr);
+    // ogs_pfcp_build_create_pdr(dl_pdr_2,1,dl_pdr);
+    // ogs_pfcp_build_create_far(ul_far_2,0,ul_far);
+    // ogs_pfcp_build_create_far(dl_far_2,1,dl_far);
+    // ogs_pfcp_build_create_urr(urr_2,0,urr);
+    // ogs_pfcp_build_create_qer(qer_2,0,qer);
+
+    // ogs_pfcp_pdrbuf_clear();
+
+    ogs_pfcp_pdr_t *pdr = NULL;
+    ogs_list_init(&sess->pdr_to_modify_list);
+    ogs_list_add(&sess->pdr_to_modify_list, &ul_pdr->to_modify_node);
+    ogs_list_add(&sess->pdr_to_modify_list, &dl_pdr->to_modify_node);
+
+    
+
+    // stream未定义(放在参数中) 但要看何时调用该函数。 里面的sess->pfcp_node也要换
+    smf_5gc_pfcp_send_one_pdr_create_request(sess, stream, OGS_PFCP_MODIFY_CREATE|OGS_PFCP_MODIFY_ACTIVATE,0); 
+
+     
 }

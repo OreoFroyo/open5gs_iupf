@@ -361,7 +361,7 @@ int ngap_handle_pdu_session_resource_modify_response_transfer(
 
     rv = OGS_OK;
 
-cleanup:
+cleanup: 
     ogs_asn_free(
             &asn_DEF_NGAP_PDUSessionResourceModifyResponseTransfer, &message);
     return rv;

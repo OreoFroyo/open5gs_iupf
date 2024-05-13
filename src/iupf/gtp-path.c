@@ -478,9 +478,9 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             upf_sess_t *sess1;
             sess1 = UPF_SESS(pdr->sess);
             ogs_assert(sess1);
-            ogs_info("!!!!upf sess->ipv4: [%08x]",be32toh(sess1->ipv4->addr[0]));
+            ogs_info("upf sess->ipv4: [%08x]",be32toh(sess1->ipv4->addr[0]));
             if(src_addr[0] == sess1->ipv4->addr[0]){
-                ogs_info("it's uplink!!!");
+                ogs_info("Uplink Message");
                 ogs_list_for_each(&pfcp_sess->pdr_list, pdr) { // 根据teid找出的pfcp 查找pdr和会话信息
 
                     /* Check if Source Interface */
@@ -504,7 +504,7 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
                     break;
                 }
             }else if(dst_addr[0] == sess1->ipv4->addr[0]) {
-                ogs_info("it's downlink!!!");
+                ogs_info("Downlink Message");
                 ogs_list_for_each(&pfcp_sess->pdr_list, pdr) { // 根据teid找出的pfcp 查找pdr和会话信息
                     /* Check if Source Interface */
                     if (pdr->src_if == OGS_PFCP_INTERFACE_ACCESS || pdr->src_if == OGS_PFCP_INTERFACE_LI_FUNCTION)

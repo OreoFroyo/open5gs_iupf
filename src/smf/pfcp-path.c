@@ -648,6 +648,38 @@ int smf_5gc_ipfcp_send_all_pdr_modification_request(
 }
 
 
+int smf_5gc_pfcp_send_one_pdr_create_request(
+        smf_sess_t *sess, ogs_sbi_stream_t *stream,
+        uint64_t flags, ogs_time_t duration)
+{
+    int rv;
+    ogs_pfcp_xact_t *xact = NULL;
+    ogs_pfcp_pdr_t *pdr = NULL;
+
+    ogs_assert(sess);
+    if ((flags & OGS_PFCP_MODIFY_ERROR_INDICATION) == 0)
+        ogs_assert(stream);
+
+    xact = ogs_pfcp_xact_local_create(sess->ipfcp_node, sess_5gc_timeout, sess);
+    if (!xact) {
+        ogs_error("ogs_pfcp_xact_local_create() failed");
+        return OGS_ERROR;
+    }
+
+    xact->assoc_stream = stream;
+    xact->local_seid = sess->smf_n4_seid;
+    xact->modify_flags = flags | OGS_PFCP_MODIFY_SESSION;
+
+    ogs_list_init(&sess->pdr_to_modify_list);
+    ogs_list_for_each(&sess->ipfcp.pdr_list, pdr)
+        ogs_list_add(&sess->pdr_to_modify_list, &pdr->to_modify_node);
+
+    rv = smf_pfcp_send_modify_list(
+            sess, smf_n4_build_pdr_to_modify_list, xact, duration);
+    ogs_expect(rv == OGS_OK);
+
+    return rv;
+}
 
 int smf_5gc_pfcp_send_all_pdr_modification_request(
         smf_sess_t *sess, ogs_sbi_stream_t *stream,
