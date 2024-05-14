@@ -89,6 +89,7 @@ void upf_n4_handle_session_establishment_request(
             break;
     }
     num_of_created_pdr = i;
+    ogs_info("num_of_created_pdr:[%d]",i);
     if (cause_value != OGS_PFCP_CAUSE_REQUEST_ACCEPTED)
         goto cleanup;
 

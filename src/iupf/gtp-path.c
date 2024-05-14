@@ -167,6 +167,12 @@ static void _gtpv1_tun_recv_common_cb(
         goto cleanup;
     
     //查找匹配的PDR处理报文,进行会话统计等 并通过PFCP发送下行报文通知
+    int num1= 0;
+    ogs_list_for_each(&sess->pfcp.pdr_list, pdr){
+        num1++;
+    }
+    ogs_info("number of pdr: [%d]"num1);
+
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;
         ogs_assert(far);

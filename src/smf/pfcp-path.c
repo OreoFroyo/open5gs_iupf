@@ -670,9 +670,9 @@ int smf_5gc_pfcp_send_one_pdr_create_request(
     xact->local_seid = sess->smf_n4_seid;
     xact->modify_flags = flags | OGS_PFCP_MODIFY_SESSION;
 
-    ogs_list_init(&sess->pdr_to_modify_list);
-    ogs_list_for_each(&sess->ipfcp.pdr_list, pdr)
-        ogs_list_add(&sess->pdr_to_modify_list, &pdr->to_modify_node);
+    // ogs_list_init(&sess->pdr_to_modify_list);
+    // ogs_list_for_each(&sess->ipfcp.pdr_list, pdr)
+    //     ogs_list_add(&sess->pdr_to_modify_list, &pdr->to_modify_node);
 
     rv = smf_pfcp_send_modify_list(
             sess, smf_n4_build_pdr_to_modify_list, xact, duration);

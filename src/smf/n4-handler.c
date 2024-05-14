@@ -1476,7 +1476,7 @@ void smf_n4_handle_session_report_request(
     }
 }
 
-void smf_create_pdr_by_targetIp(smf_sess_t *sess, gtpu_id, targetIp){
+void smf_create_pdr_by_targetIp(smf_sess_t *sess, ogs_sbi_stream_t *stream){ //gtpu_id, targetIp
 
     ogs_pfcp_pdr_t *dl_pdr = NULL;
     ogs_pfcp_pdr_t *ul_pdr = NULL;

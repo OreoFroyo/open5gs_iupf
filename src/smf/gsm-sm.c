@@ -628,6 +628,9 @@ void smf_gsm_state_wait_ipfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
 
     sess = e->sess;
     ogs_assert(sess);
+    ogs_sbi_stream_t *stream;
+    stream = e->h.sbi.data;
+    ogs_assert(stream);
 
     switch (e->h.id) {
     case OGS_FSM_ENTRY_SIG:
@@ -702,6 +705,7 @@ void smf_gsm_state_wait_ipfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
                     OGS_FSM_TRAN(s, smf_gsm_state_5gc_n1_n2_reject);
                     return;
                 }
+                smf_create_pdr_by_targetIp(sess,stream);
             }
             ogs_assert(OGS_OK ==
                 smf_5gc_pfcp_send_session_establishment_request(sess, 0));
