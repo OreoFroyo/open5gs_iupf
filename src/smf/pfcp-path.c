@@ -654,7 +654,6 @@ int smf_5gc_pfcp_send_one_pdr_create_request(
 {
     int rv;
     ogs_pfcp_xact_t *xact = NULL;
-    ogs_pfcp_pdr_t *pdr = NULL;
 
     ogs_assert(sess);
     if ((flags & OGS_PFCP_MODIFY_ERROR_INDICATION) == 0)

@@ -26,7 +26,6 @@
 #include "sbi-path.h"
 #include "ngap-path.h"
 #include "fd-path.h"
-#include "build.h"
 
 uint8_t gtp_cause_from_pfcp(uint8_t pfcp_cause, uint8_t gtp_version)
 {
@@ -1484,8 +1483,8 @@ void smf_create_pdr_by_targetIp(smf_sess_t *sess, ogs_sbi_stream_t *stream){ //g
     ogs_pfcp_far_t *dl_far = NULL;
     ogs_pfcp_far_t *ul_far = NULL;
 
-    ogs_pfcp_urr_t *urr = NULL;
-    ogs_pfcp_qer_t *qer = NULL;
+    // ogs_pfcp_urr_t *urr = NULL;
+    // ogs_pfcp_qer_t *qer = NULL;
 
     dl_pdr = ogs_pfcp_pdr_add(&sess->ipfcp); //分配一个新的pdr对象
     ogs_assert(dl_pdr);
@@ -1637,20 +1636,23 @@ void smf_create_pdr_by_targetIp(smf_sess_t *sess, ogs_sbi_stream_t *stream){ //g
         }
     }
 
-    ogs_info("PDRCreateByTargetIP：UE SUPI[%s] DNN[%s] IPv4[%s] IPv6[%s]",
-        smf_ue->supi, sess->session.name,
-        sess->ipv4 ? OGS_INET_NTOP(&sess->ipv4->addr, buf1) : "",
-        sess->ipv6 ? OGS_INET6_NTOP(&sess->ipv6->addr, buf2) : "");
+    // ogs_info("PDRCreateByTargetIP：UE SUPI[%s] DNN[%s] IPv4[%s] IPv6[%s]",
+    //     smf_ue->supi, sess->session.name,
+    //     sess->ipv4 ? OGS_INET_NTOP(&sess->ipv4->addr, buf1) : "",
+    //     sess->ipv6 ? OGS_INET6_NTOP(&sess->ipv6->addr, buf2) : "");
     
     ul_pdr->f_teid.ipv4 = 1;
     ul_pdr->f_teid.ipv6 = 1;
     ul_pdr->f_teid.ch = 1;
     ul_pdr->f_teid.chid = 1;
-    ul_pdr->f_teid.teid = sess->upf_n3_teid
+    ul_pdr->f_teid.teid = sess->upf_n3_teid;
     ul_pdr->f_teid.choose_id = OGS_PFCP_DEFAULT_CHOOSE_ID;
     ul_pdr->f_teid_len = 5;    
-
-    // ip1 -> 目的UPF的ip 
+    
+    // ip1 -> 目的UPF的ip
+    ogs_ip_t ip1;
+    // ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
+    ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
     ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
             &ip1,
@@ -1659,15 +1661,15 @@ void smf_create_pdr_by_targetIp(smf_sess_t *sess, ogs_sbi_stream_t *stream){ //g
         ul_far->outer_header_creation.teid = sess->upf_n9_teid;
         ul_far->dst_if_type[0] = 9;
     
-    ogs_ip_t iupf_ip;
-        ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
+    // ogs_ip_t iupf_ip;
+    //     ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
 
-        ogs_assert(OGS_OK ==
-        ogs_pfcp_ip_to_outer_header_creation(
-            &iupf_ip,
-            &dl_far_upf->outer_header_creation,
-            &dl_far_upf->outer_header_creation_len));
-        dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
+    //     ogs_assert(OGS_OK ==
+    //     ogs_pfcp_ip_to_outer_header_creation(
+    //         &iupf_ip,
+    //         &dl_far_upf->outer_header_creation,
+    //         &dl_far_upf->outer_header_creation_len));
+    //     dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
     
     // !!!改为对应的N9 teid (可能有很多个id)
     dl_pdr->f_teid.teid = sess->upf_n9_teid;
@@ -1707,7 +1709,7 @@ void smf_create_pdr_by_targetIp(smf_sess_t *sess, ogs_sbi_stream_t *stream){ //g
 
     // ogs_pfcp_pdrbuf_clear();
 
-    ogs_pfcp_pdr_t *pdr = NULL;
+    // ogs_pfcp_pdr_t *pdr = NULL;
     ogs_list_init(&sess->pdr_to_modify_list);
     ogs_list_add(&sess->pdr_to_modify_list, &ul_pdr->to_modify_node);
     ogs_list_add(&sess->pdr_to_modify_list, &dl_pdr->to_modify_node);
@@ -1716,6 +1718,5 @@ void smf_create_pdr_by_targetIp(smf_sess_t *sess, ogs_sbi_stream_t *stream){ //g
 
     // stream未定义(放在参数中) 但要看何时调用该函数。 里面的sess->pfcp_node也要换
     smf_5gc_pfcp_send_one_pdr_create_request(sess, stream, OGS_PFCP_MODIFY_CREATE|OGS_PFCP_MODIFY_ACTIVATE,0); 
-
      
 }

@@ -168,10 +168,11 @@ static void _gtpv1_tun_recv_common_cb(
     
     //查找匹配的PDR处理报文,进行会话统计等 并通过PFCP发送下行报文通知
     int num1= 0;
-    ogs_list_for_each(&sess->pfcp.pdr_list, pdr){
+    ogs_pfcp_pdr_t *pdr1 = NULL;
+    ogs_list_for_each(&sess->pfcp.pdr_list, pdr1){
         num1++;
     }
-    ogs_info("number of pdr: [%d]"num1);
+    ogs_info("number of pdr: [%d]", num1);
 
     ogs_list_for_each(&sess->pfcp.pdr_list, pdr) {
         far = pdr->far;
@@ -487,6 +488,12 @@ static void _gtpv1_u_recv_cb(short when, ogs_socket_t fd, void *data)
             ogs_info("upf sess->ipv4: [%08x]",be32toh(sess1->ipv4->addr[0]));
             if(src_addr[0] == sess1->ipv4->addr[0]){
                 ogs_info("Uplink Message");
+                int num1= 0;
+                ogs_pfcp_pdr_t *pdr1 = NULL;
+                ogs_list_for_each(&pfcp_sess->pdr_list, pdr1){
+                    num1++;
+                }
+                ogs_info("num of created pdr ：[%d]",num1);
                 ogs_list_for_each(&pfcp_sess->pdr_list, pdr) { // 根据teid找出的pfcp 查找pdr和会话信息
 
                     /* Check if Source Interface */
