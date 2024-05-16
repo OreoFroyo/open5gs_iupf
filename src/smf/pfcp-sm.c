@@ -334,7 +334,7 @@ void smf_pfcp_state_associated(ogs_fsm_t *s, smf_event_t *e)
                     &message->pfcp_session_modification_response);
             else
                 smf_5gc_n4_handle_session_modification_response(
-                    sess, xact, &message->pfcp_session_modification_response);
+                    node, sess, xact, &message->pfcp_session_modification_response);
             break;
 
         case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:

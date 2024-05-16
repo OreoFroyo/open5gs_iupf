@@ -338,8 +338,8 @@ uint8_t smf_5gc_n4_handle_session_establishment_response_iupf(
 
 
 void smf_5gc_n4_handle_session_modification_response(
-        smf_sess_t *sess, ogs_pfcp_xact_t *xact,
-        ogs_pfcp_session_modification_response_t *rsp)
+        ogs_pfcp_node_t *node, smf_sess_t *sess, 
+        ogs_pfcp_xact_t *xact, ogs_pfcp_session_modification_response_t *rsp)
 {
     int status = 0;
     uint64_t flags = 0;
@@ -347,6 +347,8 @@ void smf_5gc_n4_handle_session_modification_response(
     smf_bearer_t *qos_flow = NULL;
 
     OGS_LIST(pdr_to_create_list);
+
+    // ogs_list_for_each(&ogs_sbi_self()->client_list, client)
 
     ogs_debug("Session Modification Response [5gc]");
 
@@ -388,7 +390,10 @@ void smf_5gc_n4_handle_session_modification_response(
         ogs_error("No Cause");
         status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
     }
-
+    int flag = 0;
+    if (ogs_sockaddr_is_equal(node->addr, sess->pfcp_node->addr) == true){
+        flag = 1;
+    }
     if (status == OGS_SBI_HTTP_STATUS_OK) {
         int i;
 
@@ -399,9 +404,22 @@ void smf_5gc_n4_handle_session_modification_response(
         ogs_pfcp_far_t *far = NULL;
 
         ogs_assert(sess);
+        ogs_pfcp_sess_t* pfcp = NULL;
+        ogs_pfcp_node_t* pfcp_node = NULL;
+        if (flag) {
+            pfcp = &sess->pfcp;
+            ogs_assert(sess->pfcp_node);
+            pfcp_node = sess->pfcp_node;
+
+        } else {
+            pfcp = &sess->ipfcp;
+            ogs_assert(sess->ipfcp_node);
+            pfcp_node = sess->ipfcp_node;
+
+        }
         for (i = 0; i < OGS_MAX_NUM_OF_PDR; i++) {
             pdr = ogs_pfcp_handle_created_pdr(
-                    &sess->pfcp, &rsp->created_pdr[i],
+                    pfcp, &rsp->created_pdr[i],
                     &pfcp_cause_value, &offending_ie_value);
 
             if (!pdr)
@@ -416,12 +434,13 @@ void smf_5gc_n4_handle_session_modification_response(
                 if (far->dst_if == OGS_PFCP_INTERFACE_CP_FUNCTION)
                     ogs_pfcp_far_teid_hash_set(far);
 
-                ogs_assert(sess->pfcp_node);
-                if (sess->pfcp_node->up_function_features.ftup &&
+                // ogs_assert(sess->pfcp_node);
+                if (pfcp_node->up_function_features.ftup &&
                     pdr->f_teid_len) {
 
                     if (far->dst_if == OGS_PFCP_INTERFACE_CORE) {
-                        if (sess->upf_n3_addr)
+                        if (flag) {
+                            if (sess->upf_n3_addr)
                             ogs_freeaddrinfo(sess->upf_n3_addr);
                         if (sess->upf_n3_addr6)
                             ogs_freeaddrinfo(sess->upf_n3_addr6);
@@ -430,7 +449,21 @@ void smf_5gc_n4_handle_session_modification_response(
                             ogs_pfcp_f_teid_to_sockaddr(
                                 &pdr->f_teid, pdr->f_teid_len,
                                 &sess->upf_n3_addr, &sess->upf_n3_addr6));
-                        sess->upf_n3_teid = pdr->f_teid.teid;
+                            sess->upf_n3_teid = pdr->f_teid.teid;
+                            // todo: 可能需要修改upf n3 teid的数量
+                        } else {
+                            if (sess->iupf_n3_addr)
+                            ogs_freeaddrinfo(sess->upf_n3_addr);
+                         if (sess->iupf_n3_addr6)
+                            ogs_freeaddrinfo(sess->upf_n3_addr6);
+
+                        ogs_assert(OGS_OK ==
+                            ogs_pfcp_f_teid_to_sockaddr(
+                                &pdr->f_teid, pdr->f_teid_len,
+                                &sess->iupf_n3_addr, &sess->iupf_n3_addr6));
+                            //sess->upf_n3_teid = pdr->f_teid.teid;
+                        }
+                        
                     } else if (far->dst_if == OGS_PFCP_INTERFACE_ACCESS) {
                         if (sess->handover.upf_dl_addr)
                             ogs_freeaddrinfo(sess->handover.upf_dl_addr);
