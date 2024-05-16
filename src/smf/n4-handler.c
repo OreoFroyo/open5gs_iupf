@@ -391,7 +391,7 @@ void smf_5gc_n4_handle_session_modification_response(
         status = OGS_SBI_HTTP_STATUS_BAD_REQUEST;
     }
     int flag = 0;
-    if (ogs_sockaddr_is_equal(node->addr, sess->pfcp_node->addr) == true){
+    if (ogs_sockaddr_is_equal(&node->addr, &sess->pfcp_node->addr) == true){
         flag = 1;
     }
     if (status == OGS_SBI_HTTP_STATUS_OK) {
