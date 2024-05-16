@@ -1479,7 +1479,7 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
     ogs_pfcp_pool_init(&sess->ipfcp);
 
     //initalization pfcp_array
-    sess->pfcp_array[0] = sess->pfcp;
+    sess->pfcp_array[0] = &sess->pfcp;
 
     smf_qfi_pool_init(sess);
     smf_pf_precedence_pool_init(sess);
