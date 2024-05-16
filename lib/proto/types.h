@@ -83,6 +83,8 @@ extern "C" {
 #define OGS_MAX_EPCO_LEN                65535
 #define OGS_MAX_FQDN_LEN                256
 
+#define OGS_MAX_NUM_OF_UPF_IN_SESSION   16
+
 #define OGS_MAX_NUM_OF_SERVED_GUAMI     8
 #define OGS_MAX_NUM_OF_SERVED_TAI       OGS_MAX_NUM_OF_TAI
 #define OGS_MAX_NUM_OF_ACCESS_CONTROL   8

@@ -1176,6 +1176,7 @@ void smf_sess_select_upf(smf_sess_t *sess)
         selected_upf_node(ogs_pfcp_self()->pfcp_node, sess);
     ogs_assert(ogs_pfcp_self()->pfcp_node);
     OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
+    sess->pfcp_node_array[0] = ogs_pfcp_self()->pfcp_node;
     ogs_debug("UE using UPF on IP[%s]",
             OGS_ADDR(&ogs_pfcp_self()->pfcp_node->addr, buf));
 }
@@ -1476,6 +1477,10 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi)
 
     ogs_pfcp_pool_init(&sess->pfcp);
     ogs_pfcp_pool_init(&sess->ipfcp);
+
+    //initalization pfcp_array
+    sess->pfcp_array[0] = sess->pfcp;
+
     smf_qfi_pool_init(sess);
     smf_pf_precedence_pool_init(sess);
 
