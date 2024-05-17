@@ -245,6 +245,8 @@ typedef struct smf_sess_s {
 
     ogs_pfcp_sess_t pfcp;           /* PFCP session context */
     ogs_pfcp_sess_t ipfcp;           /* PFCP session context */
+    
+    ogs_pfcp_sess_t* pfcp_array[OGS_MAX_NUM_OF_UPF_IN_SESSION];          /* PFCP session context list (pfcp_array[0] should alwyas point to pfcp)*/
 
     uint64_t        smpolicycontrol_features; /* SBI features */
 
@@ -433,6 +435,7 @@ typedef struct smf_sess_s {
     ogs_pfcp_node_t *pfcp_node;
     ogs_pfcp_node_t *ipfcp_node;
 
+    ogs_pfcp_node_t *pfcp_node_array[OGS_MAX_NUM_OF_UPF_IN_SESSION];
     smf_ue_t *smf_ue;
 
     bool n1_released;
