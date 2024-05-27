@@ -1097,7 +1097,7 @@ static bool compare_ip_addr(ogs_pfcp_node_t *node, uint32_t addr){
     ogs_assert(addr);
     ogs_assert(node->pfcp_addr);
     ogs_assert(OGS_OK == ogs_sockaddr_to_ip(
-                node->pfcp_addr, sess->pfcp_addr6, &ip)); //就改这里
+                node.pfcp_addr, sess.pfcp_addr6, &ip)); //就改这里
     if (ip.addr == addr)
         return true;
     return false;
