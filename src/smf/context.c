@@ -1091,6 +1091,18 @@ smf_ue_t *smf_ue_find_by_imsi(uint8_t *imsi, int imsi_len)
     return (smf_ue_t *)ogs_hash_get(self.imsi_hash, imsi, imsi_len);
 }
 
+static bool compare_ip_addr(ogs_pfcp_node_t *node, uint32_t addr){
+    ogs_ip_t ip;
+    //todo: to be finished
+    ogs_assert(addr);
+    ogs_assert(node->pfcp_addr);
+    ogs_assert(OGS_OK == ogs_sockaddr_to_ip(
+                node->pfcp_addr, sess->pfcp_addr6, &ip)); //就改这里
+    if (ip.addr == addr)
+        return true;
+    return false;
+}
+
 static bool compare_ue_info(ogs_pfcp_node_t *node, smf_sess_t *sess)
 {
     int i;
@@ -1157,6 +1169,23 @@ static ogs_pfcp_node_t *selected_upf_node(
     return ogs_list_first(&ogs_pfcp_self()->pfcp_peer_list);
 }
 
+static ogs_pfcp_node_t *select_upf_according_address(
+        smf_sess_t *sess, uint32_t addr)
+{
+    ogs_pfcp_node_t *next, *node;
+    ogs_assert(sess);
+
+    /* search from top to current position */
+    for (node = ogs_list_first(&ogs_pfcp_self()->pfcp_peer_list);
+            node != next; node = ogs_list_next(node)) {
+        if (OGS_FSM_CHECK(&node->sm, smf_pfcp_state_associated) &&
+            compare_ip_addr(node, addr) == true) return node;
+    }
+   
+    ogs_error("No UPFs are PFCP associated that are suited to ip addr");
+    return ogs_list_first(&ogs_pfcp_self()->pfcp_peer_list);
+}
+
 void smf_sess_select_upf(smf_sess_t *sess)
 {
     char buf[OGS_ADDRSTRLEN];
@@ -1181,6 +1210,16 @@ void smf_sess_select_upf(smf_sess_t *sess)
             OGS_ADDR(&ogs_pfcp_self()->pfcp_node->addr, buf));
 }
 
+
+void smf_sess_add_upf(smf_sess_t *sess, ogs_pfcp_node_t * node){
+    // i is the length of  pfcp_node_array 
+    char buf[OGS_ADDRSTRLEN];
+    int i = len(sess->pfcp_node_array);
+    ogs_assert(node);
+    sess->pfcp_node_array[i] = node;
+    ogs_debug("UE add UPF on IP[%s]",
+        OGS_ADDR(&node->addr, buf));
+}
 
 static ogs_pfcp_node_t *selected_iupf_node(
         ogs_pfcp_node_t *current, smf_sess_t *sess)
