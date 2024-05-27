@@ -1095,9 +1095,9 @@ static bool compare_ip_addr(ogs_pfcp_node_t *node, uint32_t addr){
     ogs_ip_t ip;
     //todo: to be finished
     ogs_assert(addr);
-    ogs_assert(node->pfcp_addr);
+    ogs_assert(&node->addr);
     ogs_assert(OGS_OK == ogs_sockaddr_to_ip(
-                node.pfcp_addr, sess.pfcp_addr6, &ip)); //就改这里
+                &node->addr, NULL, &ip)); //就改这里
     if (ip.addr == addr)
         return true;
     return false;
@@ -1172,12 +1172,12 @@ static ogs_pfcp_node_t *selected_upf_node(
 static ogs_pfcp_node_t *select_upf_according_address(
         smf_sess_t *sess, uint32_t addr)
 {
-    ogs_pfcp_node_t *next, *node;
+    ogs_pfcp_node_t *node;
     ogs_assert(sess);
 
     /* search from top to current position */
     for (node = ogs_list_first(&ogs_pfcp_self()->pfcp_peer_list);
-            node != next; node = ogs_list_next(node)) {
+            node != NULL; node = ogs_list_next(node)) {
         if (OGS_FSM_CHECK(&node->sm, smf_pfcp_state_associated) &&
             compare_ip_addr(node, addr) == true) return node;
     }
@@ -1203,6 +1203,7 @@ void smf_sess_select_upf(smf_sess_t *sess)
     /* setup GTP session with selected UPF */
     ogs_pfcp_self()->pfcp_node =
         selected_upf_node(ogs_pfcp_self()->pfcp_node, sess);
+    select_upf_according_address(sess, (uint32_t)0); // just for test and should be delete in following modification
     ogs_assert(ogs_pfcp_self()->pfcp_node);
     OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
     sess->pfcp_node_array[0] = ogs_pfcp_self()->pfcp_node;
@@ -1214,7 +1215,7 @@ void smf_sess_select_upf(smf_sess_t *sess)
 void smf_sess_add_upf(smf_sess_t *sess, ogs_pfcp_node_t * node){
     // i is the length of  pfcp_node_array 
     char buf[OGS_ADDRSTRLEN];
-    int i = len(sess->pfcp_node_array);
+    int i = OGS_ARRAY_SIZE(sess->pfcp_node_array);
     ogs_assert(node);
     sess->pfcp_node_array[i] = node;
     ogs_debug("UE add UPF on IP[%s]",

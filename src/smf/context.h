@@ -246,7 +246,7 @@ typedef struct smf_sess_s {
     ogs_pfcp_sess_t pfcp;           /* PFCP session context */
     ogs_pfcp_sess_t ipfcp;           /* PFCP session context */
     
-    ogs_pfcp_sess_t* pfcp_array[OGS_MAX_NUM_OF_UPF_IN_SESSION];          /* PFCP session context list (pfcp_array[0] should alwyas point to pfcp)*/
+    ogs_pfcp_sess_t* pfcp_array[OGS_MAX_NUM_OF_UPF_IN_SESSION];          /* PFCP session context list (pfcp_array[0] should always point to pfcp)*/
 
     uint64_t        smpolicycontrol_features; /* SBI features */
 
@@ -469,6 +469,7 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi);
 
 void smf_sess_select_upf(smf_sess_t *sess);
 void smf_sess_select_iupf(smf_sess_t *sess);
+void smf_sess_add_upf(smf_sess_t *sess, ogs_pfcp_node_t * node);
 uint8_t smf_sess_set_ue_ip(smf_sess_t *sess);
 void smf_sess_set_paging_n1n2message_location(
         smf_sess_t *sess, char *n1n2message_location);
