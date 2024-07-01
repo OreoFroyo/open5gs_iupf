@@ -883,7 +883,8 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote) // for 
                         node = ogs_pfcp_node_new(addr);
                         ogs_assert(node);
                         ogs_list_add(&self.ipfcp_peer_list, node);
-                        ogs_info("complete for ipfcp,%s",node->addr.hostname);
+                        char * ipstr = ogs_ipstrdup(node->addr);
+                        ogs_info("complete for ipfcp,%s",ipstr);
                         node->num_of_tac = num_of_tac;
                         if (num_of_tac != 0)
                             memcpy(node->tac, tac, sizeof(node->tac));
