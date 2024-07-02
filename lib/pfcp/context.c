@@ -883,12 +883,12 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote) // for 
                         node = ogs_pfcp_node_new(addr);
                         ogs_assert(node);
                         ogs_list_add(&self.ipfcp_peer_list, node);
-                        ogs_info("beigin for ipfcp address print. May lead to crash.");
-                        char ipstr[65 + 1];
-                        memset(ipstr, 0, sizeof(ipstr));
-                        OGS_ADDR(&addr, ipstr);
-                        // ogs_ipstrdup(&node->addr);
-                        ogs_info("Complete for ipfcp,%s",ipstr);
+                        ogs_info("beigin for ipfcp address print.");
+                        // char ipstr[65 + 1];
+                        // memset(ipstr, 0, sizeof(ipstr));
+                        // OGS_ADDR(&addr, ipstr);
+                        // // ogs_ipstrdup(&node->addr);
+                        // ogs_info("Complete for ipfcp,%s",ipstr);
                         
                         node->num_of_tac = num_of_tac;
                         if (num_of_tac != 0)
