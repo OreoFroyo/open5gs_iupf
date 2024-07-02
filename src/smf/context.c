@@ -1175,6 +1175,7 @@ void smf_sess_select_upf(smf_sess_t *sess)
     ogs_pfcp_self()->pfcp_node =
         selected_upf_node(ogs_pfcp_self()->pfcp_node, sess);
     ogs_assert(ogs_pfcp_self()->pfcp_node);
+    ogs_info("Going to print the IP address of the UPF node");
     OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
     ogs_debug("UE using UPF on IP[%s]",
             OGS_ADDR(&ogs_pfcp_self()->pfcp_node->addr, buf));
@@ -1195,6 +1196,7 @@ static ogs_pfcp_node_t *selected_iupf_node(
         if (OGS_FSM_CHECK(&node->sm, smf_pfcp_state_associated) &&
             compare_ue_info(node, sess) == true) return node;
     }
+    
     /* cyclic search from top to current position */
     for (node = ogs_list_first(&ogs_pfcp_self()->ipfcp_peer_list);
             node != next; node = ogs_list_next(node)) {
@@ -1202,7 +1204,7 @@ static ogs_pfcp_node_t *selected_iupf_node(
             compare_ue_info(node, sess) == true) return node;
     }                                                                                                                                         
 
-    if (ogs_app()->parameter.no_pfcp_rr_select == 0) {
+    if (ogs_app()->parameter.no_pfcp_rr_select == 0) {      
         /* continue search from current position */
         next = ogs_list_next(current);
         for (node = next; node; node = ogs_list_next(node)) {
