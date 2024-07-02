@@ -883,7 +883,7 @@ int ogs_pfcp_context_parse_config(const char *local, const char *remote) // for 
                         node = ogs_pfcp_node_new(addr);
                         ogs_assert(node);
                         ogs_list_add(&self.ipfcp_peer_list, node);
-                        char * ipstr = char buf[65 + 1];
+                        char ipstr[65 + 1];
                         memset(ipstr, 0, sizeof(ipstr));
                         OGS_ADDR(&node->addr, ipstr);
                         // ogs_ipstrdup(&node->addr);
