@@ -1167,8 +1167,12 @@ void smf_sess_select_upf(smf_sess_t *sess)
      * When used for the first time, if last node is set,
      * the search is performed from the first UPF in a round-robin manner.
      */
-    if (ogs_pfcp_self()->pfcp_node == NULL)
+    if (ogs_pfcp_self()->pfcp_node == NULL) {
+        ogs_debug("ogs_pfcp_self()->pfcp_node is NULL");
         ogs_pfcp_self()->pfcp_node =
+            ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list);
+    }
+    ogs_pfcp_self()->pfcp_node =
             ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list);
 
     /* setup GTP session with selected UPF */
