@@ -141,7 +141,7 @@ static void update_authorized_pcc_rule_and_qos(
             }
 
             if (SmPolicyDecision->qos_decs) {
-                ogs_debug("Have qos_decs. May lead to crash!")
+                ogs_debug("Have qos_decs. May lead to crash!");
                 OpenAPI_map_t *QosDecisionMap = NULL;
                 OpenAPI_qos_data_t *QosDataIter = NULL;
 
@@ -374,7 +374,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_debug("Before check sess_rules. May lead to crash!");
     /* Update authorized session-AMBR */
     if (SmPolicyDecision->sess_rules) {
-        ogs_debug("In sess_rules. May lead to crash!")
+        ogs_debug("In sess_rules. May lead to crash!");
         OpenAPI_map_t *SessRuleMap = NULL;
         OpenAPI_session_rule_t *SessionRule = NULL;
 
