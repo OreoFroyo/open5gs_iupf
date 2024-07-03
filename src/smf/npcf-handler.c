@@ -85,6 +85,7 @@ static void update_authorized_pcc_rule_and_qos(
      */
 
     if (SmPolicyDecision->pcc_rules) {
+        ogs_debug("Have pcc_rules. May lead to crash!");
         OpenAPI_map_t *PccRuleMap = NULL;
         OpenAPI_pcc_rule_t *PccRule = NULL;
         OpenAPI_flow_information_t *FlowInformation = NULL;
@@ -97,6 +98,7 @@ static void update_authorized_pcc_rule_and_qos(
         sess->policy.num_of_pcc_rule = 0;
 
         OpenAPI_list_for_each(SmPolicyDecision->pcc_rules, node) {
+            ogs_debug("In SmPolicyDecision each pcc_rules . May lead to crash!");
             ogs_pcc_rule_t *pcc_rule =
                 &sess->policy.pcc_rule[sess->policy.num_of_pcc_rule];
             ogs_assert(pcc_rule);
@@ -139,6 +141,7 @@ static void update_authorized_pcc_rule_and_qos(
             }
 
             if (SmPolicyDecision->qos_decs) {
+                ogs_debug("Have qos_decs. May lead to crash!")
                 OpenAPI_map_t *QosDecisionMap = NULL;
                 OpenAPI_qos_data_t *QosDataIter = NULL;
 
@@ -177,8 +180,9 @@ static void update_authorized_pcc_rule_and_qos(
             pcc_rule->id = ogs_strdup(PccRule->pcc_rule_id);
             ogs_assert(pcc_rule->id);
             pcc_rule->precedence = PccRule->precedence;
-
+            ogs_debug("Before flow_infos. May lead to crash!");
             if (PccRule->flow_infos) {
+                ogs_debug("In flow_infos. May lead to crash!");
                 ogs_assert(pcc_rule->num_of_flow == 0);
                 OpenAPI_list_for_each(PccRule->flow_infos, node2) {
                     ogs_flow_t *flow = &pcc_rule->flow[pcc_rule->num_of_flow];
@@ -213,8 +217,9 @@ static void update_authorized_pcc_rule_and_qos(
 
             pcc_rule->qos.index = QosData->_5qi;
             pcc_rule->qos.arp.priority_level = QosData->priority_level;
-
+            ogs_debug("Before flow_infos. May lead to crash!");
             if (QosData->arp) {
+                ogs_debug("In flow_infos. May lead to crash!");
                 pcc_rule->qos.arp.priority_level = QosData->arp->priority_level;
                 if (QosData->arp->preempt_cap ==
                     OpenAPI_preemption_capability_NOT_PREEMPT)
@@ -236,7 +241,7 @@ static void update_authorized_pcc_rule_and_qos(
                         OGS_5GC_PRE_EMPTION_ENABLED;
                 ogs_assert(pcc_rule->qos.arp.pre_emption_vulnerability);
             }
-
+            ogs_debug("After flows. May lead to crash!");
             if (QosData->maxbr_ul)
                 pcc_rule->qos.mbr.uplink =
                     ogs_sbi_bitrate_from_string(QosData->maxbr_ul);
@@ -338,7 +343,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_free(sess->policy_association_id);
     sess->policy_association_id = ogs_strdup(message.h.resource.component[1]);
     ogs_assert(sess->policy_association_id);
-
+    ogs_debug("Before header free. May lead to crash!");
     ogs_sbi_header_free(&header);
 
     /* SBI Features */
@@ -355,6 +360,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
      *********************************************************************/
 
     /* Get policy control request triggers */
+    ogs_debug("Before trigger_results. May lead to crash!");
     memset(&trigger_results, 0, sizeof(trigger_results));
     OpenAPI_list_for_each(SmPolicyDecision->policy_ctrl_req_triggers, node) {
         if (node->data) {
@@ -365,9 +371,10 @@ bool smf_npcf_smpolicycontrol_handle_create(
             trigger_results[trigger_id] = true;
         }
     }
-
+    ogs_debug("Before check sess_rules. May lead to crash!");
     /* Update authorized session-AMBR */
     if (SmPolicyDecision->sess_rules) {
+        ogs_debug("In sess_rules. May lead to crash!")
         OpenAPI_map_t *SessRuleMap = NULL;
         OpenAPI_session_rule_t *SessionRule = NULL;
 
@@ -431,14 +438,14 @@ bool smf_npcf_smpolicycontrol_handle_create(
             }
         }
     }
-    
+    ogs_debug("Before update aythorized. May lead to crash!");
     /* Update authorized PCC rule & QoS */
     update_authorized_pcc_rule_and_qos(sess, SmPolicyDecision);
 
     /*********************************************************************
      * Send PFCP Session Establiashment Request to the UPF
      *********************************************************************/
-
+    ogs_debug("Before select upf. May lead to crash!");
     /* Select UPF based on UE Location Information */
     smf_sess_select_upf(sess);
     
