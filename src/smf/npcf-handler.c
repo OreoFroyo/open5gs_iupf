@@ -624,20 +624,32 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &up2cp_far->outer_header_creation_len));
     up2cp_far->outer_header_creation.teid = sess->index;
     ogs_info("prepare to give an iupf addr");
-    if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET){
-        ogs_assert(OGS_OK ==
-            ogs_copyaddrinfo(
-                &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
-        sess->iupf_n3_addr->ogs_sa_family = AF_INET;
+    /* Here, the iupf_n3_addr(6) will be used as upf_n3_addr;*/
+    ogs_gtpu_resource_t *resource = NULL;
+    resource = ogs_pfcp_find_gtpu_resource(
+            &sess->ipfcp_node->gtpu_resource_list,
+            sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
+    if (resource) {
+        ogs_info("load iupf_n3_addr from resource");
+        ogs_user_plane_ip_resource_info_to_sockaddr(&resource->info,
+            &sess->iupf_n3_addr, &sess->iupf_n3_addr6);
+    } else {
+        ogs_info("load iupf_n3_addr from ipfcp_node");
+        if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET){
+            ogs_assert(OGS_OK ==
+                ogs_copyaddrinfo(
+                    &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
+            sess->iupf_n3_addr->ogs_sa_family = AF_INET;
+        }
+        else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6){
+            ogs_assert(OGS_OK ==
+                ogs_copyaddrinfo(
+                    &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
+            sess->iupf_n3_addr6->ogs_sa_family = AF_INET6;
+        }
+        else
+            ogs_assert_if_reached();
     }
-    else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6){
-        ogs_assert(OGS_OK ==
-            ogs_copyaddrinfo(
-                &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
-        sess->iupf_n3_addr6->ogs_sa_family = AF_INET6;
-    }
-    else
-        ogs_assert_if_reached();
     char buf[65];
     ogs_info("iupf_n3_addr [%s]",
         OGS_ADDR(sess->iupf_n3_addr, buf));
