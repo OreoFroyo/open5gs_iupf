@@ -766,17 +766,28 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &dl_far_upf->outer_header_creation,
             &dl_far_upf->outer_header_creation_len));
         dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
-
-        if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
+        ogs_gtpu_resource_t *resource = NULL;
+        resource = ogs_pfcp_find_gtpu_resource(
+                &sess->pfcp_node->gtpu_resource_list,
+                sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
+        if (resource) {
+            ogs_info("load upf_n9_addr from resource");
+            ogs_user_plane_ip_resource_info_to_sockaddr(&resource->info,
+                &sess->upf_n9_addr, &sess->upf_n9_addr6);
+        } else {
+            ogs_info("load upf_n9_addr from pfcp_node");
+             if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
             ogs_assert(OGS_OK ==
                 ogs_copyaddrinfo(
                     &sess->upf_n9_addr, &sess->pfcp_node->addr));
-        else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
-            ogs_assert(OGS_OK ==
-                ogs_copyaddrinfo(
-                    &sess->upf_n9_addr6, &sess->pfcp_node->addr));
-        else
-            ogs_assert_if_reached();
+            else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
+                ogs_assert(OGS_OK ==
+                    ogs_copyaddrinfo(
+                        &sess->upf_n9_addr6, &sess->pfcp_node->addr));
+            else
+                ogs_assert_if_reached();
+        }
+       
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n9_addr, sess->upf_n9_addr6,
