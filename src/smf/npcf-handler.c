@@ -787,7 +787,8 @@ bool smf_npcf_smpolicycontrol_handle_create(
             else
                 ogs_assert_if_reached();
         }
-       
+        ogs_info("upf_n9_addr [%s]",
+        OGS_ADDR(sess->upf_n9_addr, buf));
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n9_addr, sess->upf_n9_addr6,
