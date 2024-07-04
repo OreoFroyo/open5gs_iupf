@@ -281,7 +281,8 @@ ogs_pkbuf_t *ogs_pfcp_up_build_association_setup_response(uint8_t type,
     rsp->up_function_features.data = &ogs_pfcp_self()->up_function_features;
     rsp->up_function_features.len = ogs_pfcp_self()->up_function_features_len;
 
-    if (ogs_pfcp_self()->up_function_features.ftup == 0) {
+    if (true) {
+    // if (ogs_pfcp_self()->up_function_features.ftup == 0) {
         ogs_debug("going to send user plane ip resource information");
         i = 0;
         ogs_list_for_each(&ogs_gtp_self()->gtpu_resource_list, resource) {
