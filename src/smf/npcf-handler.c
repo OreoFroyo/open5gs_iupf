@@ -772,7 +772,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         
         ogs_info("upf_n9_addr [%s]",
         OGS_ADDR(sess->upf_n9_addr, buf));
-        ogs_sockaddr_to_ip(&sess->upf_n9_addr,&sess->upf_n9_addr6,&ip1);
+        ogs_sockaddr_to_ip(sess->upf_n9_addr,sess->upf_n9_addr6,&ip1);
         ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
             &ip1,
@@ -782,7 +782,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_far->dst_if_type[0] = 9;
 
         ogs_ip_t iupf_ip;
-        ogs_sockaddr_to_ip(&sess->iupf_n3_addr,&sess->iupf_n3_addr6,&iupf_ip);
+        ogs_sockaddr_to_ip(sess->iupf_n3_addr,sess->iupf_n3_addr6,&iupf_ip);
 
         ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
