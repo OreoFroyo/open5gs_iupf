@@ -748,24 +748,6 @@ bool smf_npcf_smpolicycontrol_handle_create(
         up2cp_pdr->f_teid_len = 5;
         ogs_ip_t ip1;
         // ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
-        ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
-        ogs_assert(OGS_OK ==
-        ogs_pfcp_ip_to_outer_header_creation(
-            &ip1,
-            &ul_far->outer_header_creation,
-            &ul_far->outer_header_creation_len));
-        ul_far->outer_header_creation.teid = sess->upf_n9_teid;
-        ul_far->dst_if_type[0] = 9;
-
-        ogs_ip_t iupf_ip;
-        ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
-
-        ogs_assert(OGS_OK ==
-        ogs_pfcp_ip_to_outer_header_creation(
-            &iupf_ip,
-            &dl_far_upf->outer_header_creation,
-            &dl_far_upf->outer_header_creation_len));
-        dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
         ogs_gtpu_resource_t *resource = NULL;
         resource = ogs_pfcp_find_gtpu_resource(
                 &sess->pfcp_node->gtpu_resource_list,
@@ -787,8 +769,28 @@ bool smf_npcf_smpolicycontrol_handle_create(
             else
                 ogs_assert_if_reached();
         }
+        
         ogs_info("upf_n9_addr [%s]",
         OGS_ADDR(sess->upf_n9_addr, buf));
+        ogs_sockaddr_to_ip(&sess->upf_n9_addr,&sess->upf_n9_addr6,&ip1);
+        ogs_assert(OGS_OK ==
+        ogs_pfcp_ip_to_outer_header_creation(
+            &ip1,
+            &ul_far->outer_header_creation,
+            &ul_far->outer_header_creation_len));
+        ul_far->outer_header_creation.teid = sess->upf_n9_teid;
+        ul_far->dst_if_type[0] = 9;
+
+        ogs_ip_t iupf_ip;
+        ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
+
+        ogs_assert(OGS_OK ==
+        ogs_pfcp_ip_to_outer_header_creation(
+            &iupf_ip,
+            &dl_far_upf->outer_header_creation,
+            &dl_far_upf->outer_header_creation_len));
+        dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
+
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n9_addr, sess->upf_n9_addr6,
