@@ -782,7 +782,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_far->dst_if_type[0] = 9;
 
         ogs_ip_t iupf_ip;
-        ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
+        ogs_sockaddr_to_ip(&sess->iupf_n3_addr,&sess->iupf_n3_addr6,&iupf_ip);
 
         ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
