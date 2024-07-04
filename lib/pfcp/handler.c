@@ -146,8 +146,12 @@ bool ogs_pfcp_cp_handle_association_setup_response(
         ogs_pfcp_node_t *node, ogs_pfcp_xact_t *xact,
         ogs_pfcp_association_setup_response_t *rsp)
 {
+    char buf[OGS_ADDRSTRLEN];
     int i;
-
+    ogs_debug("ogs_pfcp_cp_handle_association_setup_response");
+    ogs_debug("Handle peer [%s]:%d",
+            OGS_ADDR(&node->addr, buf),
+            OGS_PORT(&node->addr));
     ogs_assert(xact);
     ogs_pfcp_xact_commit(xact);
 
@@ -163,7 +167,7 @@ bool ogs_pfcp_cp_handle_association_setup_response(
 
         if (message->presence == 0)
             break;
-
+        ogs_debug("ogs_pfcp_cp_handle_association_setup_response: %d",i);
         ogs_pfcp_parse_user_plane_ip_resource_info(&info, message);
         ogs_gtpu_resource_add(&node->gtpu_resource_list, &info);
     }
