@@ -59,6 +59,25 @@ uint32_t smf_pfcp_urr_usage_report_trigger2diam_gy_reporting_reason(ogs_pfcp_usa
     return OGS_DIAM_GY_REPORTING_REASON_UNUSED_QUOTA_TIMER;
 }
 
+static void ipfcp_node_fsm_init(ogs_pfcp_node_t *node, bool try_to_assoicate)
+{
+    smf_event_t e;
+
+    ogs_assert(node);
+
+    memset(&e, 0, sizeof(e));
+    e.pfcp_node = node;
+
+    if (try_to_assoicate == true) {
+        node->t_association = ogs_timer_add(ogs_app()->timer_mgr,
+                smf_timer_pfcp_association, node);
+        ogs_assert(node->t_association);
+    }
+
+    ogs_fsm_init(&node->sm, smf_pfcp_state_initial, smf_pfcp_state_final, &e);
+}
+
+
 static void pfcp_node_fsm_init(ogs_pfcp_node_t *node, bool try_to_assoicate)
 {
     smf_event_t e;
@@ -163,7 +182,7 @@ static void pfcp_node_fsm_fini(ogs_pfcp_node_t *node)
 //     }
 // }
 
-
+/* deal with both pfcp and ipfcp node*/
 static void ipfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 {
     // ogs_info("start a call back function support ipfcp");
