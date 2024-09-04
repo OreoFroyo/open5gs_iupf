@@ -1172,8 +1172,8 @@ void smf_sess_select_upf(smf_sess_t *sess)
         ogs_pfcp_self()->pfcp_node =
             ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list);
     }
-    ogs_pfcp_self()->pfcp_node =
-            ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list);
+    // ogs_pfcp_self()->pfcp_node =
+    //         ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list); // which lead to that pfcp search will from the first node
 
     /* setup GTP session with selected UPF */
     ogs_pfcp_self()->pfcp_node =
@@ -1237,18 +1237,18 @@ void smf_sess_select_iupf(smf_sess_t *sess)
      * When used for the first time, if last node is set,
      * the search is performed from the first UPF in a round-robin manner.
      */
-    if (ogs_pfcp_self()->pfcp_node == NULL)
-        ogs_pfcp_self()->pfcp_node =
-            ogs_list_last(&ogs_pfcp_self()->ipfcp_peer_list);
+    if (ogs_pfcp_self()->ipfcp_node == NULL)
+        ogs_pfcp_self()->ipfcp_node =
+            ogs_list_last(&ogs_pfcp_self()->ipfcp_peer_list); 
 
     /* setup GTP session with selected UPF */
-    ogs_pfcp_self()->pfcp_node =
-        selected_iupf_node(ogs_pfcp_self()->pfcp_node, sess);
-    ogs_assert(ogs_pfcp_self()->pfcp_node);
-    OGS_SETUP_IPFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
+    ogs_pfcp_self()->ipfcp_node =
+        selected_iupf_node(ogs_pfcp_self()->ipfcp_node, sess);
+    ogs_assert(ogs_pfcp_self()->ipfcp_node);
+    OGS_SETUP_IPFCP_NODE(sess, ogs_pfcp_self()->ipfcp_node);
     // OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node); // need test in 2023/09/21
     ogs_info("UE using IUPF on IP[%s]",
-            OGS_ADDR(&ogs_pfcp_self()->pfcp_node->addr, buf));
+            OGS_ADDR(&ogs_pfcp_self()->ipfcp_node->addr, buf));
 }
 
 smf_sess_t *smf_sess_add_by_apn(smf_ue_t *smf_ue, char *apn, uint8_t rat_type)
