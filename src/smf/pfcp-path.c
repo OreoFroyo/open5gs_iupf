@@ -163,7 +163,7 @@ static void pfcp_node_fsm_fini(ogs_pfcp_node_t *node)
 //     }
 // }
 
-
+/* deal with both pfcp and ipfcp node*/
 static void ipfcp_recv_cb(short when, ogs_socket_t fd, void *data)
 {
     // ogs_info("start a call back function support ipfcp");

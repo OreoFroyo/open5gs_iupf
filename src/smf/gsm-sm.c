@@ -563,7 +563,7 @@ void smf_gsm_state_wait_5gc_sm_policy_association(ogs_fsm_t *s, smf_event_t *e)
              * Establishment Reject message ...
              */
             state = e->h.sbi.state;
-
+            ogs_debug("OGS_SBI_SERVICE_NAME_NPCF_SMPOLICYCONTROL: begin to handle. May lead to crash!");
             SWITCH(sbi_message->h.resource.component[0])
             CASE(OGS_SBI_RESOURCE_NAME_SM_POLICIES)
                 if (sbi_message->h.resource.component[1]) {

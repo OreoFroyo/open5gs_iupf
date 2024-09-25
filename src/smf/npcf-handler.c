@@ -85,6 +85,7 @@ static void update_authorized_pcc_rule_and_qos(
      */
 
     if (SmPolicyDecision->pcc_rules) {
+        ogs_debug("Have pcc_rules. May lead to crash!");
         OpenAPI_map_t *PccRuleMap = NULL;
         OpenAPI_pcc_rule_t *PccRule = NULL;
         OpenAPI_flow_information_t *FlowInformation = NULL;
@@ -97,6 +98,7 @@ static void update_authorized_pcc_rule_and_qos(
         sess->policy.num_of_pcc_rule = 0;
 
         OpenAPI_list_for_each(SmPolicyDecision->pcc_rules, node) {
+            ogs_debug("In SmPolicyDecision each pcc_rules . May lead to crash!");
             ogs_pcc_rule_t *pcc_rule =
                 &sess->policy.pcc_rule[sess->policy.num_of_pcc_rule];
             ogs_assert(pcc_rule);
@@ -139,6 +141,7 @@ static void update_authorized_pcc_rule_and_qos(
             }
 
             if (SmPolicyDecision->qos_decs) {
+                ogs_debug("Have qos_decs. May lead to crash!");
                 OpenAPI_map_t *QosDecisionMap = NULL;
                 OpenAPI_qos_data_t *QosDataIter = NULL;
 
@@ -177,8 +180,9 @@ static void update_authorized_pcc_rule_and_qos(
             pcc_rule->id = ogs_strdup(PccRule->pcc_rule_id);
             ogs_assert(pcc_rule->id);
             pcc_rule->precedence = PccRule->precedence;
-
+            ogs_debug("Before flow_infos. May lead to crash!");
             if (PccRule->flow_infos) {
+                ogs_debug("In flow_infos. May lead to crash!");
                 ogs_assert(pcc_rule->num_of_flow == 0);
                 OpenAPI_list_for_each(PccRule->flow_infos, node2) {
                     ogs_flow_t *flow = &pcc_rule->flow[pcc_rule->num_of_flow];
@@ -213,8 +217,9 @@ static void update_authorized_pcc_rule_and_qos(
 
             pcc_rule->qos.index = QosData->_5qi;
             pcc_rule->qos.arp.priority_level = QosData->priority_level;
-
+            ogs_debug("Before flow_infos. May lead to crash!");
             if (QosData->arp) {
+                ogs_debug("In flow_infos. May lead to crash!");
                 pcc_rule->qos.arp.priority_level = QosData->arp->priority_level;
                 if (QosData->arp->preempt_cap ==
                     OpenAPI_preemption_capability_NOT_PREEMPT)
@@ -236,7 +241,7 @@ static void update_authorized_pcc_rule_and_qos(
                         OGS_5GC_PRE_EMPTION_ENABLED;
                 ogs_assert(pcc_rule->qos.arp.pre_emption_vulnerability);
             }
-
+            ogs_debug("After flows. May lead to crash!");
             if (QosData->maxbr_ul)
                 pcc_rule->qos.mbr.uplink =
                     ogs_sbi_bitrate_from_string(QosData->maxbr_ul);
@@ -275,6 +280,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     char buf1[OGS_ADDRSTRLEN];
     char buf2[OGS_ADDRSTRLEN];
 
+    ogs_debug("Begin to handle SM Policy Control Request. May lead to crash!");
     smf_ue_t *smf_ue = NULL;
     smf_bearer_t *qos_flow = NULL;
     ogs_pfcp_pdr_t *dl_pdr = NULL;
@@ -337,7 +343,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ogs_free(sess->policy_association_id);
     sess->policy_association_id = ogs_strdup(message.h.resource.component[1]);
     ogs_assert(sess->policy_association_id);
-
+    ogs_debug("Before header free. May lead to crash!");
     ogs_sbi_header_free(&header);
 
     /* SBI Features */
@@ -354,6 +360,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
      *********************************************************************/
 
     /* Get policy control request triggers */
+    ogs_debug("Before trigger_results. May lead to crash!");
     memset(&trigger_results, 0, sizeof(trigger_results));
     OpenAPI_list_for_each(SmPolicyDecision->policy_ctrl_req_triggers, node) {
         if (node->data) {
@@ -364,9 +371,10 @@ bool smf_npcf_smpolicycontrol_handle_create(
             trigger_results[trigger_id] = true;
         }
     }
-
+    ogs_debug("Before check sess_rules. May lead to crash!");
     /* Update authorized session-AMBR */
     if (SmPolicyDecision->sess_rules) {
+        ogs_debug("In sess_rules. May lead to crash!");
         OpenAPI_map_t *SessRuleMap = NULL;
         OpenAPI_session_rule_t *SessionRule = NULL;
 
@@ -430,14 +438,14 @@ bool smf_npcf_smpolicycontrol_handle_create(
             }
         }
     }
-    
+    ogs_debug("Before update aythorized. May lead to crash!");
     /* Update authorized PCC rule & QoS */
     update_authorized_pcc_rule_and_qos(sess, SmPolicyDecision);
 
     /*********************************************************************
      * Send PFCP Session Establiashment Request to the UPF
      *********************************************************************/
-
+    ogs_debug("Before select upf. May lead to crash!");
     /* Select UPF based on UE Location Information */
     smf_sess_select_upf(sess);
     
@@ -616,20 +624,32 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &up2cp_far->outer_header_creation_len));
     up2cp_far->outer_header_creation.teid = sess->index;
     ogs_info("prepare to give an iupf addr");
-    if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET){
-        ogs_assert(OGS_OK ==
-            ogs_copyaddrinfo(
-                &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
-        sess->iupf_n3_addr->ogs_sa_family = AF_INET;
+    /* Here, the iupf_n3_addr(6) will be used as upf_n3_addr;*/
+    ogs_gtpu_resource_t *resource = NULL;
+    resource = ogs_pfcp_find_gtpu_resource(
+            &sess->ipfcp_node->gtpu_resource_list,
+            sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
+    if (resource) {
+        ogs_info("load iupf_n3_addr from resource");
+        ogs_user_plane_ip_resource_info_to_sockaddr(&resource->info,
+            &sess->iupf_n3_addr, &sess->iupf_n3_addr6);
+    } else {
+        ogs_info("load iupf_n3_addr from ipfcp_node");
+        if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET){
+            ogs_assert(OGS_OK ==
+                ogs_copyaddrinfo(
+                    &sess->iupf_n3_addr, &sess->ipfcp_node->addr));
+            sess->iupf_n3_addr->ogs_sa_family = AF_INET;
+        }
+        else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6){
+            ogs_assert(OGS_OK ==
+                ogs_copyaddrinfo(
+                    &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
+            sess->iupf_n3_addr6->ogs_sa_family = AF_INET6;
+        }
+        else
+            ogs_assert_if_reached();
     }
-    else if (sess->ipfcp_node->addr.ogs_sa_family == AF_INET6){
-        ogs_assert(OGS_OK ==
-            ogs_copyaddrinfo(
-                &sess->iupf_n3_addr6, &sess->ipfcp_node->addr));
-        sess->iupf_n3_addr6->ogs_sa_family = AF_INET6;
-    }
-    else
-        ogs_assert_if_reached();
     char buf[65];
     ogs_info("iupf_n3_addr [%s]",
         OGS_ADDR(sess->iupf_n3_addr, buf));
@@ -728,7 +748,31 @@ bool smf_npcf_smpolicycontrol_handle_create(
         up2cp_pdr->f_teid_len = 5;
         ogs_ip_t ip1;
         // ip1.addr = 0x9EF7A8C0;//192168247157;//0b11000000101010001111011110011101;
-        ogs_sockaddr_to_ip(&sess->pfcp_node->addr,NULL,&ip1);
+        ogs_gtpu_resource_t *resource = NULL;
+        resource = ogs_pfcp_find_gtpu_resource(
+                &sess->pfcp_node->gtpu_resource_list,
+                sess->session.name, OGS_PFCP_INTERFACE_ACCESS);
+        if (resource) {
+            ogs_info("load upf_n9_addr from resource");
+            ogs_user_plane_ip_resource_info_to_sockaddr(&resource->info,
+                &sess->upf_n9_addr, &sess->upf_n9_addr6);
+        } else {
+            ogs_info("load upf_n9_addr from pfcp_node");
+             if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
+            ogs_assert(OGS_OK ==
+                ogs_copyaddrinfo(
+                    &sess->upf_n9_addr, &sess->pfcp_node->addr));
+            else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
+                ogs_assert(OGS_OK ==
+                    ogs_copyaddrinfo(
+                        &sess->upf_n9_addr6, &sess->pfcp_node->addr));
+            else
+                ogs_assert_if_reached();
+        }
+        
+        ogs_info("upf_n9_addr [%s]",
+        OGS_ADDR(sess->upf_n9_addr, buf));
+        ogs_sockaddr_to_ip(sess->upf_n9_addr,sess->upf_n9_addr6,&ip1);
         ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
             &ip1,
@@ -738,7 +782,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
         ul_far->dst_if_type[0] = 9;
 
         ogs_ip_t iupf_ip;
-        ogs_sockaddr_to_ip(&sess->ipfcp_node->addr,NULL,&iupf_ip);
+        ogs_sockaddr_to_ip(sess->iupf_n3_addr,sess->iupf_n3_addr6,&iupf_ip);
 
         ogs_assert(OGS_OK ==
         ogs_pfcp_ip_to_outer_header_creation(
@@ -747,16 +791,6 @@ bool smf_npcf_smpolicycontrol_handle_create(
             &dl_far_upf->outer_header_creation_len));
         dl_far_upf->outer_header_creation.teid = sess->upf_n3_teid;
 
-        if (sess->pfcp_node->addr.ogs_sa_family == AF_INET)
-            ogs_assert(OGS_OK ==
-                ogs_copyaddrinfo(
-                    &sess->upf_n9_addr, &sess->pfcp_node->addr));
-        else if (sess->pfcp_node->addr.ogs_sa_family == AF_INET6)
-            ogs_assert(OGS_OK ==
-                ogs_copyaddrinfo(
-                    &sess->upf_n9_addr6, &sess->pfcp_node->addr));
-        else
-            ogs_assert_if_reached();
         ogs_assert(OGS_OK ==
             ogs_pfcp_sockaddr_to_f_teid(
                 sess->upf_n9_addr, sess->upf_n9_addr6,
