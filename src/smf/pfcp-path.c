@@ -613,6 +613,50 @@ int smf_5gc_pfcp_send_session_establishment_request(
     return rv;
 }
 
+int smf_5gc_pfcp_send_session_establishment_request_toMoreUPF(
+        smf_sess_t *sess, uint64_t flags)
+{
+    int rv;
+    ogs_pkbuf_t *n4buf = NULL;
+    ogs_pfcp_header_t h;
+    ogs_pfcp_xact_t *xact = NULL;
+
+    ogs_assert(sess);
+    
+    for(int i=0;i<sess->pfcp_node_num;i++){
+        xact = ogs_pfcp_xact_local_create(sess->pfcp_node_array[i], sess_5gc_timeout, sess);
+        if (!xact) {
+            ogs_error("ogs_pfcp_xact_local_create() failed");
+            return OGS_ERROR;
+        }
+
+        xact->local_seid = sess->smf_n4_seid;
+        xact->create_flags = flags;
+
+        memset(&h, 0, sizeof(ogs_pfcp_header_t));
+        h.type = OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE;
+
+        h.seid = sess->upf_n4_seid;
+
+        n4buf = smf_n4_build_session_establishment_request(h.type, sess, xact);
+        if (!n4buf) {
+            ogs_error("smf_n4_build_session_establishment_request() failed");
+            return OGS_ERROR;
+        }
+
+        rv = ogs_pfcp_xact_update_tx(xact, &h, n4buf);
+        if (rv != OGS_OK) {
+            ogs_error("ogs_pfcp_xact_update_tx() failed");
+            return OGS_ERROR;
+        }
+
+        rv = ogs_pfcp_xact_commit(xact);
+        ogs_expect(rv == OGS_OK);
+    }
+    
+    return rv;
+}
+
 
 int smf_5gc_ipfcp_send_all_pdr_modification_request(
         smf_sess_t *sess, ogs_sbi_stream_t *stream,

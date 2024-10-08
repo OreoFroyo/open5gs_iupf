@@ -448,6 +448,7 @@ bool smf_npcf_smpolicycontrol_handle_create(
     ogs_debug("Before select upf. May lead to crash!");
     /* Select UPF based on UE Location Information */
     smf_sess_select_upf(sess);
+    smf_cal_all_upf(sess);
     
     /* Check if selected UPF is associated with SMF */
     ogs_assert(sess->pfcp_node);

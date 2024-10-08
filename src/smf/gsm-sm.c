@@ -830,7 +830,7 @@ void smf_gsm_state_wait_pfcp_establishment(ogs_fsm_t *s, smf_event_t *e)
                     OGS_FSM_TRAN(s, smf_gsm_state_5gc_n1_n2_reject);
                     return;
                 }
-                // smf_bearer_t *qos_flow = NULL;
+                // smf_bearer_t *qos_flow = NULL; 
                 // ogs_list_for_each(&sess->bearer_list, qos_flow) {
                 //     qos_flow->dl_far = qos_flow->dl_far_upf;
                 // }
@@ -881,6 +881,9 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
     smf_ue_t *smf_ue = NULL;
     smf_sess_t *sess = NULL;
     ogs_pkbuf_t *pkbuf = NULL;
+
+    uint8_t pfcp_cause;
+    // smf_n1_n2_message_transfer_param_t param;
 
     ogs_pfcp_xact_t *pfcp_xact = NULL;
     ogs_pfcp_message_t *pfcp_message = NULL;
@@ -945,7 +948,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                         OGS_GTP2_DELETE_SESSION_RESPONSE_TYPE, gtp2_cause);
                 return;
             }
-            OGS_FSM_TRAN(s, &smf_gsm_state_wait_pfcp_deletion);
+            OGS_FSM_TRAN(s, &smf_gsm_state_wait_pfcp_deletion); 
             break;
         case OGS_GTP2_DELETE_BEARER_RESPONSE_TYPE:
             release = smf_s5c_handle_delete_bearer_response(
@@ -973,7 +976,7 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                         OGS_PFCP_CREATE_RESTORATION_INDICATION)) {
                 ogs_pfcp_session_establishment_response_t *rsp = NULL;
                 ogs_pfcp_f_seid_t *up_f_seid = NULL;
-
+  
                 rsp = &pfcp_message->pfcp_session_establishment_response;
                 if (rsp->up_f_seid.presence == 0) {
                     ogs_error("No UP F-SEID");
@@ -983,8 +986,36 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                 ogs_assert(up_f_seid);
                 sess->upf_n4_seid = be64toh(up_f_seid->seid);
             } else {
-                ogs_error("cannot handle PFCP Session Establishment Response");
+                // ogs_error("cannot handle PFCP Session Establishment Response");
+                ogs_info("smf_gsm_state_operational: session establishment response");
+                pfcp_cause = smf_5gc_n4_handle_session_establishment_response(
+                        sess, pfcp_xact,
+                        &pfcp_message->pfcp_session_establishment_response);
+                OGS_FSM_TRAN(s, &smf_gsm_state_operational);
             }
+            break;
+        
+        case OGS_PFCP_SESSION_ESTABLISHMENT_REQUEST_TYPE:
+            ogs_info("other UPFs connecting");
+            pfcp_cause = smf_5gc_n4_handle_session_establishment_response(
+                    sess, pfcp_xact,
+                    &pfcp_message->pfcp_session_establishment_response);
+            if (pfcp_cause != OGS_PFCP_CAUSE_REQUEST_ACCEPTED) {
+                OGS_FSM_TRAN(s, smf_gsm_state_5gc_n1_n2_reject);
+                return;
+            }
+            
+            // memset(&param, 0, sizeof(param));
+            // param.state = SMF_UE_REQUESTED_PDU_SESSION_ESTABLISHMENT;
+            // param.n1smbuf =
+            //     gsm_build_pdu_session_establishment_accept(sess);
+            // ogs_assert(param.n1smbuf);
+            // param.n2smbuf =
+            //     ngap_build_pdu_session_resource_setup_request_transfer(
+            //             sess);
+            // ogs_assert(param.n2smbuf);
+            // smf_namf_comm_send_n1_n2_message_transfer(sess, &param);
+            OGS_FSM_TRAN(s, &smf_gsm_state_operational);
             break;
 
         case OGS_PFCP_SESSION_DELETION_RESPONSE_TYPE:
@@ -1273,7 +1304,10 @@ void smf_gsm_state_operational(ogs_fsm_t *s, smf_event_t *e)
                         smf_ue->supi, sess->psi);
                 OGS_FSM_TRAN(s, smf_gsm_state_exception);
             }
-            smf_create_pdr_by_targetIp(sess,stream);
+            // waiting to send to more upf
+            ogs_info("waiting to send to more upf");
+            smf_5gc_pfcp_send_session_establishment_request_toMoreUPF(sess,0);
+            // smf_create_pdr_by_targetIp(sess,stream);
             break;
 
         case OpenAPI_n2_sm_info_type_PDU_RES_SETUP_FAIL:

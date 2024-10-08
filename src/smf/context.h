@@ -436,6 +436,7 @@ typedef struct smf_sess_s {
     ogs_pfcp_node_t *ipfcp_node;
 
     ogs_pfcp_node_t *pfcp_node_array[OGS_MAX_NUM_OF_UPF_IN_SESSION];
+    int pfcp_node_num;
     smf_ue_t *smf_ue;
 
     bool n1_released;
@@ -469,6 +470,7 @@ smf_sess_t *smf_sess_add_by_psi(smf_ue_t *smf_ue, uint8_t psi);
 
 void smf_sess_select_upf(smf_sess_t *sess);
 void smf_sess_select_iupf(smf_sess_t *sess);
+void smf_cal_all_upf(smf_sess_t *sess);
 uint8_t smf_sess_set_ue_ip(smf_sess_t *sess);
 void smf_sess_set_paging_n1n2message_location(
         smf_sess_t *sess, char *n1n2message_location);

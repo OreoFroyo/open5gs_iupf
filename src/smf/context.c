@@ -1172,6 +1172,10 @@ void smf_sess_select_upf(smf_sess_t *sess)
         ogs_pfcp_self()->pfcp_node =
             ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list);
     }
+    // int count = 0;
+    // count = ogs_list_count(&ogs_pfcp_self()->pfcp_peer_list);
+    // ogs_info("available UPF num : [%d]", count);
+
     // ogs_pfcp_self()->pfcp_node =
     //         ogs_list_last(&ogs_pfcp_self()->pfcp_peer_list); // which lead to that pfcp search will from the first node
 
@@ -1181,11 +1185,44 @@ void smf_sess_select_upf(smf_sess_t *sess)
     ogs_assert(ogs_pfcp_self()->pfcp_node);
     ogs_info("Going to print the IP address of the UPF node");
     OGS_SETUP_PFCP_NODE(sess, ogs_pfcp_self()->pfcp_node);
-    sess->pfcp_node_array[0] = ogs_pfcp_self()->pfcp_node;
+    // sess->pfcp_node_array[sess->pfcp_node_num] = ogs_pfcp_self()->pfcp_node;
+    // sess->pfcp_node_num++;
     ogs_debug("UE using UPF on IP[%s]",
             OGS_ADDR(&ogs_pfcp_self()->pfcp_node->addr, buf));
 }
 
+void smf_cal_all_upf(smf_sess_t *sess){
+    // int num_of_upf = 0;
+    ogs_pfcp_node_t *pfcp_node;
+
+    pfcp_node = ogs_list_first(&ogs_pfcp_self()->pfcp_peer_list);
+    // while(pfcp_node != NULL){
+    //     num_of_upf++;
+    //     pfcp_node = ogs_list_next(pfcp_node);
+    // }
+    // ogs_info("num of upf = [%d]",num_of_upf);
+    int count = 0;
+    count = ogs_list_count(&ogs_pfcp_self()->pfcp_peer_list);
+    ogs_info("count of upf = [%d]",count);
+
+    if(ogs_list_next(ogs_pfcp_self()->pfcp_node)!=NULL){
+        pfcp_node = ogs_list_next(ogs_pfcp_self()->pfcp_node);
+    }else{
+        pfcp_node = ogs_list_first(&ogs_pfcp_self()->pfcp_peer_list);
+    }
+
+    for(int i=0;i<count;i++){
+        sess->pfcp_node_array[i] = pfcp_node;
+        sess->pfcp_node_num++;
+        if(ogs_list_next(ogs_pfcp_self()->pfcp_node)!=NULL){
+            pfcp_node = ogs_list_next(ogs_pfcp_self()->pfcp_node);
+        }else{
+            pfcp_node = ogs_list_first(&ogs_pfcp_self()->pfcp_peer_list);
+        }
+    }
+    
+
+}
 
 static ogs_pfcp_node_t *selected_iupf_node(
         ogs_pfcp_node_t *current, smf_sess_t *sess)
