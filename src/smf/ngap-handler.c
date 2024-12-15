@@ -257,7 +257,7 @@ int ngap_handle_pdu_session_resource_setup_unsuccessful_transfer(
      */
 
     ogs_assert(OGS_OK ==
-        smf_5gc_pfcp_send_all_pdr_modification_request(
+        smf_5gc_ipfcp_send_all_pdr_modification_request(
             sess, stream,
             OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_DEACTIVATE, 0));
 
@@ -483,7 +483,7 @@ int ngap_handle_path_switch_request_transfer(
 
     if (far_update) {
         ogs_assert(OGS_OK ==
-            smf_5gc_pfcp_send_all_pdr_modification_request(
+            smf_5gc_ipfcp_send_all_pdr_modification_request(
                 sess, stream,
                 OGS_PFCP_MODIFY_DL_ONLY|OGS_PFCP_MODIFY_ACTIVATE|
                 OGS_PFCP_MODIFY_XN_HANDOVER|OGS_PFCP_MODIFY_END_MARKER,
@@ -691,7 +691,7 @@ int ngap_handle_handover_request_ack(
             ogs_error("It will be automatically removed");
 
             ogs_assert(OGS_OK ==
-                smf_5gc_pfcp_send_all_pdr_modification_request(
+                smf_5gc_ipfcp_send_all_pdr_modification_request(
                     sess, stream,
                     OGS_PFCP_MODIFY_INDIRECT|
                     /*
@@ -713,7 +713,7 @@ int ngap_handle_handover_request_ack(
             smf_sess_create_indirect_data_forwarding(sess);
 
             ogs_assert(OGS_OK ==
-                smf_5gc_pfcp_send_all_pdr_modification_request(
+                smf_5gc_ipfcp_send_all_pdr_modification_request(
                     sess, stream,
                     OGS_PFCP_MODIFY_INDIRECT|OGS_PFCP_MODIFY_CREATE,
                     0));
